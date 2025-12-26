@@ -54,6 +54,7 @@
         .clr-orange { --neon-clr: #ff6b00; --neon-shadow: rgba(255, 107, 0, 0.3); }
 
         .admin-tag { position: absolute; top: -10px; left: 20px; background: var(--neon-clr); color: black; padding: 0 10px; border-radius: 8px; font-size: 10px; font-weight: 900; font-family: 'Orbitron', sans-serif; }
+        .tester-tag { position: absolute; bottom: -10px; right: 20px; background: white; color: black; padding: 0 8px; border-radius: 4px; font-size: 8px; font-weight: 900; }
         
         @media (min-width: 768px) { .name-card { width: 500px; min-height: 110px; } .student-name { font-size: 3rem; } }
         
@@ -68,11 +69,9 @@
     </header>
 
     <div id="zigzag-list" class="main-container">
-        <!-- List loading... -->
         <div class="text-center text-slate-500 italic">Menghubungkan ke satelit...</div>
     </div>
 
-    <!-- Modal Login -->
     <div id="login-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md px-6">
         <div id="modal-box" class="border-4 p-8 rounded-[40px] bg-gray-950 text-center w-full max-w-sm">
             <h2 id="modal-name" class="text-4xl font-black mb-8 text-white">NAME</h2>
@@ -87,7 +86,10 @@
     <script type="module">
         import { loginWithName, subscribeNames } from './app.js';
 
+        // Ditambahkan AKUN TESTER (isT: true) yang tidak akan terkunci
         const usersList = [
+            { n: "DEV_ADMIN", r: "admin", c: "clr-gold", isT: true },
+            { n: "DEV_MURID", r: "murid", c: "clr-cyan", isT: true },
             { n: "ALPHA", r: "admin", c: "clr-gold" },
             { n: "AINUN", r: "murid", c: "clr-cyan" },
             { n: "AKBAR", r: "murid", c: "clr-pink" },
@@ -114,7 +116,6 @@
         let isProcessing = false;
         let claimedNames = {};
 
-        // Mendengarkan perubahan di Firestore secara realtime
         subscribeNames((data) => {
             claimedNames = data;
             render();
@@ -123,23 +124,24 @@
         function render() {
             const list = document.getElementById('zigzag-list');
             list.innerHTML = usersList.map((u, i) => {
-                const isClaimed = claimedNames[u.n] && claimedNames[u.n].claimedBy;
+                // Akun tester (isT) tidak pernah dianggap claimed di UI
+                const isClaimed = !u.isT && claimedNames[u.n] && claimedNames[u.n].claimedBy;
                 return `
                     <div class="name-card ${u.c} ${isClaimed ? 'claimed' : ''}" 
                          data-idx="${i}">
                         ${u.r === 'admin' ? '<div class="admin-tag">COMMANDER</div>' : ''}
+                        ${u.isT ? '<div class="tester-tag">TESTER MODE</div>' : ''}
                         <div class="student-name">${u.n}</div>
                         ${isClaimed ? '<div class="absolute bottom-2 right-4 text-[8px] text-white/40 italic">OCCUPIED</div>' : ''}
                     </div>
                 `;
             }).join('');
 
-            // Tambah event listener manual karena innerHTML menghapus listener sebelumnya
             document.querySelectorAll('.name-card').forEach(card => {
                 card.onclick = () => {
                     const idx = card.getAttribute('data-idx');
                     const user = usersList[idx];
-                    const isClaimed = claimedNames[user.n] && claimedNames[user.n].claimedBy;
+                    const isClaimed = !user.isT && claimedNames[user.n] && claimedNames[user.n].claimedBy;
                     if(!isClaimed) openModal(idx);
                 };
             });
@@ -177,8 +179,8 @@
             errDiv.classList.add('hidden');
 
             try {
-                // Eksekusi Login Firebase dari app.js
-                const result = await loginWithName(selected.n, selected.r);
+                // Kita kirim parameter isTester (selected.isT) ke app.js
+                const result = await loginWithName(selected.n, selected.r, selected.isT || false);
                 
                 if (result.success) {
                     btn.innerText = "ACCESS GRANTED";
@@ -198,7 +200,6 @@
             }
         }
 
-        // Bind events ke window agar bisa diakses HTML onclick
         document.getElementById('confirm-btn').onclick = confirmEntry;
         document.getElementById('close-btn').onclick = closeModal;
 
