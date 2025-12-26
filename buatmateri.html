@@ -9,8 +9,7 @@
     
     <!-- Cloudinary SDK -->
     <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-    
-    <!-- Link ke konfigurasi terpisah -->
+    <!-- Config Cloudinary -->
     <script src="cloudinary-config.js"></script>
 
     <style>
@@ -54,27 +53,27 @@
 </head>
 <body class="p-5 md:p-10">
     
-    <!-- Header Navigasi -->
+    <!-- Navigasi Atas -->
     <div class="max-w-4xl mx-auto flex items-center justify-between mb-10">
         <a href="dashboard.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
             <i data-lucide="arrow-left" class="w-5 h-5"></i>
-            <span>Kembali ke Dashboard</span>
+            <span>Kembali</span>
         </a>
         <div class="text-right">
             <h1 class="text-2xl font-black tracking-tighter uppercase neon-text">Mission Control</h1>
-            <p class="text-xs text-slate-500 uppercase tracking-widest font-bold">Cloud Sync Ready</p>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Stellar Database v2.0</p>
         </div>
     </div>
 
-    <!-- Tester Panel (Identity Simulator) -->
+    <!-- Panel Tester (Identitas Simulator) -->
     <div id="tester-panel" class="max-w-4xl mx-auto mb-6 hidden">
         <div class="glass border-orange-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="tester-badge text-[10px] font-black px-2 py-1 rounded-md text-white uppercase">Tester Mode</div>
+                <div class="tester-badge text-[10px] font-black px-2 py-1 rounded-md text-white uppercase shadow-lg">Tester Mode</div>
                 <p class="text-sm text-slate-300 italic">Simulasikan identitas guru:</p>
             </div>
             <select id="tester-identity-select" class="p-2 rounded-lg text-sm glass cursor-pointer border-orange-500/50 min-w-[200px]">
-                <option value="DEV_ADMIN">Pilih Identitas Guru...</option>
+                <option value="DEV_ADMIN">Pilih Guru...</option>
                 <option value="IBU YAYAH">Ibu Yayah (Wali Kelas)</option>
                 <option value="BPK JAJANG">Bapak Jajang (PJOK)</option>
                 <option value="IBU ILAH">Ibu Ilah (B. Inggris)</option>
@@ -83,56 +82,59 @@
         </div>
     </div>
 
-    <!-- Main Form -->
+    <!-- Form Utama -->
     <div class="max-w-4xl mx-auto">
         <div class="glass rounded-3xl p-8 border border-white/10 relative overflow-hidden">
             <form id="materi-form" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-slate-300 ml-1">Judul Modul</label>
-                        <input type="text" id="judul" placeholder="Contoh: Tata Surya & Galaksi" class="w-full p-4 rounded-2xl transition-all" required>
+                        <input type="text" id="judul" placeholder="Contoh: Teknik Dasar Voli" class="w-full p-4 rounded-2xl transition-all" required>
                     </div>
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-slate-300 ml-1">Kategori Mata Pelajaran</label>
-                        <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none cursor-pointer" required></select>
+                        <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none cursor-pointer" required>
+                            <!-- Diisi otomatis oleh JS -->
+                        </select>
                     </div>
                 </div>
 
-                <!-- Media Upload Area (Cloudinary) -->
+                <!-- Area Unggah Media -->
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-slate-300 ml-1">Lampiran Media (Cloudinary)</label>
-                    <div id="drop-area" onclick="handleCloudinaryLaunch()" class="border-2 border-dashed border-white/10 rounded-2xl p-10 text-center hover:border-cyan-500/50 transition-all cursor-pointer group">
+                    <div id="drop-area" onclick="launchUploadWidget()" class="border-2 border-dashed border-white/10 rounded-2xl p-10 text-center hover:border-cyan-500/50 transition-all cursor-pointer group">
                         <div id="preview-container" class="hidden mb-4">
                             <div class="inline-flex items-center gap-2 bg-cyan-500/20 text-cyan-400 px-5 py-2 rounded-full border border-cyan-500/30 text-sm font-bold">
                                 <i data-lucide="file-check" class="w-4 h-4"></i>
-                                <span id="file-name-display">Media Terunggah</span>
+                                <span id="file-name-display">Media Terpasang</span>
                             </div>
                         </div>
                         <div id="placeholder-info">
                             <i data-lucide="cloud-upload" class="w-12 h-12 mx-auto text-slate-600 group-hover:text-cyan-400 mb-3 transition-colors"></i>
-                            <p class="text-sm text-slate-400 group-hover:text-white">Klik untuk upload Gambar/Video/Audio</p>
+                            <p class="text-sm text-slate-400 group-hover:text-white font-medium">Ketuk untuk pilih Gambar/Video/Audio</p>
                         </div>
                     </div>
-                    <input type="hidden" id="final-media-url">
-                    <input type="hidden" id="final-media-type">
+                    <!-- Hidden inputs untuk menyimpan info media -->
+                    <input type="hidden" id="media-url">
+                    <input type="hidden" id="media-type">
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300 ml-1">Ringkasan Materi</label>
-                    <input type="text" id="deskripsi" placeholder="Penjelasan singkat materi..." class="w-full p-4 rounded-2xl transition-all">
+                    <label class="text-sm font-semibold text-slate-300 ml-1">Ringkasan Singkat</label>
+                    <input type="text" id="deskripsi" placeholder="Apa yang akan dipelajari murid?" class="w-full p-4 rounded-2xl transition-all">
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300 ml-1">Konten Utama</label>
-                    <textarea id="konten" rows="8" placeholder="Tuliskan isi materi lengkap di sini..." class="w-full p-4 rounded-2xl transition-all resize-none" required></textarea>
+                    <label class="text-sm font-semibold text-slate-300 ml-1">Konten Lengkap</label>
+                    <textarea id="konten" rows="8" placeholder="Tuliskan materi secara mendalam di sini..." class="w-full p-4 rounded-2xl transition-all resize-none" required></textarea>
                 </div>
 
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-white/5">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-white/5">
                     <div class="flex items-center gap-3 text-sm text-slate-500 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
                         <i data-lucide="user-check" class="w-4 h-4"></i>
-                        <span>Author: <b id="author-name" class="text-cyan-400 uppercase">...</b></span>
+                        <span>Penerbit: <b id="author-display" class="text-cyan-400 uppercase">...</b></span>
                     </div>
-                    <button type="submit" id="btn-submit" class="w-full md:w-auto px-10 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all">
+                    <button type="submit" id="btn-submit" class="w-full md:w-auto px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all active:scale-95 shadow-lg">
                         LUNCURKAN MATERI
                     </button>
                 </div>
@@ -140,10 +142,10 @@
         </div>
     </div>
 
-    <!-- Success Toast -->
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl border-cyan-500/50 text-cyan-400 font-bold hidden flex items-center gap-3 shadow-2xl z-50">
-        <i data-lucide="rocket"></i>
-        <span>Berhasil Terorbit ke Database!</span>
+    <!-- Toast Sukses -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl border-cyan-500/50 text-cyan-400 font-bold hidden flex items-center gap-3 shadow-2xl z-50 animate-bounce">
+        <i data-lucide="check-circle"></i>
+        <span>Misi Berhasil Terorbit!</span>
     </div>
 
     <script type="module">
@@ -151,13 +153,14 @@
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        // Inisialisasi Firebase
+        // Setup Firebase
         const firebaseConfig = JSON.parse(localStorage.getItem('firebaseConfig') || '{}');
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const appId = localStorage.getItem('appId') || 'stellar-academy';
 
+        // Database Guru & Mapel
         const guruMapel = {
             "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Seni Budaya", "Bahasa Sunda"],
             "BPK JAJANG": ["PJOK"],
@@ -169,24 +172,24 @@
         let activeUser = localStorage.getItem('userName') || 'GUEST';
         const isTester = localStorage.getItem('isTester') === 'true';
 
-        // Fungsi Update UI (Dropdown & Nama)
-        function updateFormUI(userName) {
-            document.getElementById('author-name').innerText = userName;
+        // Fungsi Update Identitas Form
+        function updateFormIdentity(name) {
+            document.getElementById('author-display').innerText = name;
             const select = document.getElementById('mapel-select');
             select.innerHTML = '<option value="" disabled selected>Pilih Pelajaran...</option>';
             
-            const listMapel = guruMapel[userName] || ["Mata Pelajaran Umum"];
-            listMapel.forEach(m => {
+            const list = guruMapel[name] || ["Umum"];
+            list.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m; opt.innerText = m;
                 select.appendChild(opt);
             });
         }
 
-        // Fungsi Launch Cloudinary (Ditempel ke Window agar bisa dipanggil onclick HTML)
-        window.handleCloudinaryLaunch = () => {
-            if (typeof CLOUDINARY_CONFIG === 'undefined' || CLOUDINARY_CONFIG.cloudName === "NAMA_CLOUD_ANDA") {
-                alert("Konfigurasi Cloudinary belum siap!");
+        // Fungsi Cloudinary (Ditempel ke window agar bisa dipanggil onclick)
+        window.launchUploadWidget = () => {
+            if (typeof cloudinary === 'undefined') {
+                alert("Cloudinary SDK gagal dimuat. Periksa koneksi internet.");
                 return;
             }
 
@@ -197,60 +200,65 @@
             }, (error, result) => {
                 if (!error && result.event === "success") {
                     const info = result.info;
-                    const finalUrl = typeof getOptimizedUrl !== 'undefined' ? getOptimizedUrl(info.secure_url) : info.secure_url;
+                    // Simpan URL & Tipe Media
+                    document.getElementById('media-url').value = info.secure_url;
+                    document.getElementById('media-type').value = info.resource_type;
                     
-                    document.getElementById('final-media-url').value = finalUrl;
-                    document.getElementById('final-media-type').value = info.resource_type;
-                    
+                    // Update UI Preview
                     document.getElementById('preview-container').classList.remove('hidden');
                     document.getElementById('placeholder-info').classList.add('hidden');
-                    document.getElementById('file-name-display').innerText = `Tersimpan: ${info.original_filename}.${info.format}`;
+                    document.getElementById('file-name-display').innerText = `Tersimpan: ${info.original_filename}`;
                 }
             });
         };
 
-        // Inisialisasi Auth & Tester Panel
+        // On Load Init
         window.onload = async () => {
             await signInAnonymously(auth);
             
             if (isTester) {
-                document.getElementById('tester-panel').classList.remove('hidden');
+                const panel = document.getElementById('tester-panel');
                 const tSelect = document.getElementById('tester-identity-select');
+                panel.classList.remove('hidden');
                 tSelect.value = activeUser;
+                
                 tSelect.addEventListener('change', (e) => {
                     activeUser = e.target.value;
-                    updateFormUI(activeUser);
+                    updateFormIdentity(activeUser);
                 });
             }
 
-            updateFormUI(activeUser);
+            updateFormIdentity(activeUser);
             lucide.createIcons();
         };
 
-        // Simpan ke Firebase
+        // Form Submit Logic
         document.getElementById('materi-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             btn.disabled = true;
-            btn.innerText = "MENGIRIM...";
+            btn.innerText = "SINKRONISASI...";
+
+            const payload = {
+                judul: document.getElementById('judul').value,
+                mapel: document.getElementById('mapel-select').value,
+                deskripsi: document.getElementById('deskripsi').value,
+                konten: document.getElementById('konten').value,
+                media: document.getElementById('media-url').value,
+                mediaType: document.getElementById('media-type').value,
+                author: activeUser,
+                createdAt: new Date().toISOString()
+            };
 
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
-                    judul: document.getElementById('judul').value,
-                    mapel: document.getElementById('mapel-select').value,
-                    deskripsi: document.getElementById('deskripsi').value,
-                    konten: document.getElementById('konten').value,
-                    media: document.getElementById('final-media-url').value,
-                    mediaType: document.getElementById('final-media-type').value,
-                    author: activeUser,
-                    createdAt: new Date().toISOString()
-                });
-
+                // Simpan ke Firestore (Path sesuai mandat: /artifacts/{appId}/public/data/materi)
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), payload);
+                
                 document.getElementById('toast').classList.remove('hidden');
                 setTimeout(() => window.location.href = 'dashboard.html', 2000);
             } catch (err) {
-                console.error(err);
-                alert("Gagal mengirim materi!");
+                console.error("Firebase Error:", err);
+                alert("Gagal meluncurkan materi. Pastikan Config Firebase benar.");
                 btn.disabled = false;
                 btn.innerText = "LUNCURKAN MATERI";
             }
