@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Academy - Pilih Tipe Materi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050505;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .glass {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-text {
+            background: linear-gradient(to right, #22d3ee, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            border-color: rgba(34, 211, 238, 0.5);
+            background: rgba(255, 255, 255, 0.06);
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+
+    <!-- Header -->
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div>
+            <a href="dashboard.html" class="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-4 inline-flex">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span class="text-sm font-bold uppercase tracking-wider">Kembali ke Dashboard</span>
+            </a>
+            <h1 class="text-4xl font-black tracking-tight uppercase">Pilih Mode <span class="neon-text">Transmisi</span></h1>
+            <p class="text-slate-500 mt-2 max-w-md">Pilih format penyampaian materi yang paling efektif untuk modul pembelajaran Anda hari ini.</p>
+        </div>
+        <div class="hidden md:block text-right">
+            <div class="p-3 bg-white/5 rounded-2xl border border-white/10 inline-block">
+                <i data-lucide="layers" class="w-8 h-8 text-cyan-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid Kartu -->
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Standar (Link ke file lama) -->
+        <a href="buatmateri.html" class="glass p-8 rounded-[2.5rem] card-hover transition-all group relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i data-lucide="file-text" class="w-24 h-24"></i>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-slate-500/20 flex items-center justify-center mb-6 border border-slate-500/30">
+                <i data-lucide="file-text" class="text-slate-300 w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3">Modul Standar</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Format klasik menggunakan teks narasi, gambar, dan lampiran dokumen pendukung untuk penjelasan mendalam.</p>
+        </a>
+
+        <!-- Storytelling -->
+        <a href="buatmateri-story.html" class="glass p-8 rounded-[2.5rem] card-hover transition-all group relative overflow-hidden border-purple-500/20">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity text-purple-400">
+                <i data-lucide="book-open" class="w-24 h-24"></i>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-6 border border-purple-500/30">
+                <i data-lucide="book-open" class="text-purple-400 w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3">Storytelling</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Ubah materi menjadi narasi petualangan. Membantu murid memahami konsep sulit melalui alur cerita dan penokohan.</p>
+        </a>
+
+        <!-- Flashcards -->
+        <a href="buatmateri-flashcards.html" class="glass p-8 rounded-[2.5rem] card-hover transition-all group relative overflow-hidden border-amber-500/20">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity text-amber-400">
+                <i data-lucide="copy" class="w-24 h-24"></i>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mb-6 border border-amber-500/30">
+                <i data-lucide="copy" class="text-amber-400 w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3">Flashcards</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Metode repetisi efektif. Cocok untuk menghafal kosakata, rumus singkat, atau poin-poin penting secara cepat.</p>
+        </a>
+
+        <!-- Audio Guide -->
+        <a href="buatmateri-audio.html" class="glass p-8 rounded-[2.5rem] card-hover transition-all group relative overflow-hidden border-rose-500/20">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity text-rose-400">
+                <i data-lucide="mic" class="w-24 h-24"></i>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-rose-500/20 flex items-center justify-center mb-6 border border-rose-500/30">
+                <i data-lucide="mic" class="text-rose-400 w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3">Audio Guide</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Fokus pada pendengaran. Sangat baik untuk materi bahasa, pelafalan, atau penjelasan instruksional tanpa gangguan visual.</p>
+        </a>
+
+        <!-- Interactive Timeline -->
+        <a href="buatmateri-timeline.html" class="glass p-8 rounded-[2.5rem] card-hover transition-all group relative overflow-hidden border-cyan-500/20">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity text-cyan-400">
+                <i data-lucide="git-commit" class="w-24 h-24"></i>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 border border-cyan-500/30">
+                <i data-lucide="git-commit" class="text-cyan-400 w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-extrabold mb-3">Interactive Timeline</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Visualisasikan urutan kejadian. Ideal untuk pelajaran sejarah, proses biologi, atau langkah-langkah prosedur sistematis.</p>
+        </a>
+
+        <!-- Coming Soon / Request -->
+        <div class="glass p-8 rounded-[2.5rem] border-dashed border-white/10 flex flex-col items-center justify-center text-center opacity-60">
+            <div class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center mb-4">
+                <i data-lucide="plus" class="text-slate-500 w-6 h-6"></i>
+            </div>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Tipe Baru Segera Hadir</p>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+
