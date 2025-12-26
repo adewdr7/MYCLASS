@@ -106,21 +106,16 @@
                 </div>
             </div>
 
-            <!-- Right Column: Info -->
-            <div class="lg:col-span-4 space-y-6">
-                <h3 class="text-sm font-black flex items-center gap-2 text-slate-500 uppercase tracking-widest">
-                    <i data-lucide="megaphone" class="w-4 h-4"></i> Pengumuman
-                </h3>
-                
-                <div class="glass p-6 rounded-[2rem] space-y-6">
-                    <div class="border-l-2 border-cyan-500 pl-4 py-1">
-                        <p class="text-[10px] text-slate-500 mb-1">BARU • 2 jam lalu</p>
-                        <h4 class="text-sm font-bold">Maintenance Sektor 7 Selesai</h4>
-                    </div>
-                    <div class="border-l-2 border-purple-500 pl-4 py-1">
-                        <p class="text-[10px] text-slate-500 mb-1">EVENT • 5 jam lalu</p>
-                        <h4 class="text-sm font-bold">Misi Nebula Aktif</h4>
-                    </div>
+          <div class="glass p-6 rounded-[2rem] space-y-6">
+    <a href="pengumuman.html" class="block border-l-2 border-cyan-500 pl-4 py-1 hover:bg-white/5 transition-colors">
+        <p class="text-[10px] text-slate-500 mb-1">BARU • 2 jam lalu</p>
+        <h4 class="text-sm font-bold">Maintenance Sektor 7 Selesai</h4>
+    </a>
+    <a href="pengumuman.html" class="block border-l-2 border-purple-500 pl-4 py-1 hover:bg-white/5 transition-colors">
+        <p class="text-[10px] text-slate-500 mb-1">EVENT • 5 jam lalu</p>
+        <h4 class="text-sm font-bold">Misi Nebula Aktif</h4>
+    </a>
+</div>
                 </div>
             </div>
         </div>
@@ -145,54 +140,57 @@
         }
         roleBadge.classList.remove('hidden');
 
-        // Render Action Buttons based on Role
-        const actionGrid = document.getElementById('action-grid');
-        const adminActions = [
-            { icon: 'book-open', title: 'Buat Materi', desc: 'Susun kurikulum baru', color: 'cyan' },
-            { icon: 'gamepad-2', title: 'Buat Latihan', desc: 'Rancang simulasi kuis', color: 'purple' },
-            { icon: 'trophy', title: 'Buat Tantangan', desc: 'Siapkan misi ujian', color: 'amber' },
-            { icon: 'megaphone', title: 'Siaran', desc: 'Kirim pengumuman massal', color: 'rose' }
-        ];
+      // Render Action Buttons based on Role
+const actionGrid = document.getElementById('action-grid');
+const adminActions = [
+    { icon: 'book-open', title: 'Buat Materi', desc: 'Susun kurikulum baru', color: 'cyan', link: 'buatmateri.html' },
+    { icon: 'gamepad-2', title: 'Buat Latihan', desc: 'Rancang simulasi kuis', color: 'purple', link: 'buatlatihan.html' },
+    { icon: 'trophy', title: 'Buat Tantangan', desc: 'Siapkan misi ujian', color: 'amber', link: 'buattantangan.html' },
+    { icon: 'megaphone', title: 'Siaran', desc: 'Kirim pengumuman massal', color: 'rose', link: 'siaran.html' }
+];
 
-        const muridActions = [
-            { icon: 'book-open', title: 'Belajar', desc: 'Akses database materi', color: 'cyan' },
-            { icon: 'gamepad-2', title: 'Main Kuis', desc: 'Uji kemampuan simulasi', color: 'purple' },
-            { icon: 'trophy', title: 'Ujian', desc: 'Hadapi tantangan utama', color: 'amber' }
-        ];
+const muridActions = [
+    { icon: 'book-open', title: 'Belajar', desc: 'Akses database materi', color: 'cyan', link: 'belajar.html' },
+    { icon: 'gamepad-2', title: 'Main Kuis', desc: 'Uji kemampuan simulasi', color: 'purple', link: 'mainkuis.html' },
+    { icon: 'trophy', title: 'Ujian', desc: 'Hadapi tantangan utama', color: 'amber', link: 'ujian.html' }
+];
+
 
         const actions = userRole === 'admin' ? adminActions : muridActions;
 
         actionGrid.innerHTML = actions.map(act => `
-            <button class="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col items-start gap-4 transition-all hover:bg-white/10 hover:scale-[1.02] group">
-                <div class="p-3 rounded-2xl bg-white/5 group-hover:bg-cyan-500/20 transition-colors">
-                    <i data-lucide="${act.icon}" class="w-8 h-8 text-cyan-400"></i>
-                </div>
-                <div class="text-left">
-                    <h4 class="font-bold text-lg">${act.title}</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">${act.desc}</p>
-                </div>
-            </button>
-        `).join('');
+    <a href="${act.link}" class="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col items-start gap-4 transition-all hover:bg-white/10 hover:scale-[1.02] group">
+        <div class="p-3 rounded-2xl bg-white/5 group-hover:bg-cyan-500/20 transition-colors">
+            <i data-lucide="${act.icon}" class="w-8 h-8 text-cyan-400"></i>
+        </div>
+        <div class="text-left">
+            <h4 class="font-bold text-lg">${act.title}</h4>
+            <p class="text-xs text-slate-500 leading-relaxed">${act.desc}</p>
+        </div>
+    </a>
+`).join('');
 
-        // Special Admin Section
+
+
         if (userRole === 'admin') {
-            actionGrid.innerHTML += `
-                <div class="sm:col-span-2 mt-4 w-full">
-                    <button class="w-full p-6 rounded-[2rem] glass flex items-center justify-between group hover:border-cyan-500/50">
-                        <div class="flex items-center gap-5">
-                            <div class="p-4 rounded-2xl bg-cyan-500/20 border border-cyan-500/30">
-                                <i data-lucide="users" class="text-cyan-400 w-8 h-8"></i>
-                            </div>
-                            <div class="text-left">
-                                <h4 class="text-xl font-black uppercase">Kelola Murid</h4>
-                                <p class="text-sm text-slate-500 tracking-tight">Pantau hasil belajar & progres armada</p>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-right" class="group-hover:translate-x-2 transition-transform"></i>
-                    </button>
+    actionGrid.innerHTML += `
+        <div class="sm:col-span-2 mt-4 w-full">
+            <a href="kelolamurid.html" class="w-full p-6 rounded-[2rem] glass flex items-center justify-between group hover:border-cyan-500/50">
+                <div class="flex items-center gap-5">
+                    <div class="p-4 rounded-2xl bg-cyan-500/20 border border-cyan-500/30">
+                        <i data-lucide="users" class="text-cyan-400 w-8 h-8"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xl font-black uppercase">Kelola Murid</h4>
+                        <p class="text-sm text-slate-500 tracking-tight">Pantau hasil belajar & progres armada</p>
+                    </div>
                 </div>
-            `;
-        }
+                <i data-lucide="chevron-right" class="group-hover:translate-x-2 transition-transform"></i>
+            </a>
+        </div>
+    `;
+}
+
 
         // Initialize Icons
         lucide.createIcons();
