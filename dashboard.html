@@ -58,6 +58,12 @@
             <div id="role-badge" class="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-wider">
                 <!-- Icon & Role injected by JS -->
             </div>
+            <div id="tester-control" class="hidden flex items-center gap-2">
+    <button onclick="switchTesterRole()" class="px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[10px] font-black uppercase hover:bg-amber-500/40 transition-all">
+        <i data-lucide="refresh-cw" class="inline w-3 h-3 mr-1"></i> Switch Role
+    </button>
+            </div>
+            
 
             <div class="relative group">
                 <button class="flex items-center gap-2 p-1.5 pr-4 rounded-full glass hover:bg-white/10 transition-all">
@@ -190,6 +196,28 @@
 
         // Initialize Icons
         lucide.createIcons();
+        // Cek apakah user adalah tester
+const isTester = localStorage.getItem('isTester') === 'true';
+
+if (isTester) {
+    // Tampilkan tombol kontrol jika akun adalah tester
+    document.getElementById('tester-control').classList.remove('hidden');
+}
+
+function switchTesterRole() {
+    // Ambil role saat ini
+    const currentRole = localStorage.getItem('userRole');
+    
+    // Tukar role
+    const newRole = currentRole === 'admin' ? 'murid' : 'admin';
+    
+    // Simpan role baru ke localStorage
+    localStorage.setItem('userRole', newRole);
+    
+    // Reload halaman untuk memperbarui UI dashboard (tombol aksi, dsb)
+    window.location.reload();
+}
+        
     </script>
 </body>
 </html>
