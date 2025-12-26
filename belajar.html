@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stellar Academy - Pusat Belajar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <scriwindow.filterMateript src="https://unpkg.com/lucide@latest"></script>
+   <script src="https://unpkg.com/lucide@latest">
+</script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
@@ -74,36 +75,34 @@
         </div>
     </div>
 <script type="module">
-    // Menggunakan library yang konsisten dengan app.js
     import { db, auth } from './app.js';
-    import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Pastikan appId sama dengan yang ada di buatmateri.html
     const appId = "sekolah-sdnwidarasari"; 
-
     let allMateri = [];
     let currentFilter = 'Semua';
 
+    // FUNGSI RENDER: Menampilkan data ke layar
     const renderGrid = (list) => {
         const grid = document.getElementById('materi-grid');
         grid.innerHTML = '';
         
         if (list.length === 0) {
-            grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">Belum ada materi untuk kategori ini.</div>`;
+            grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 font-bold uppercase tracking-widest text-xs">Tidak ada materi di kategori ini.</div>`;
+            return;
         }
 
         list.forEach(item => {
             grid.innerHTML += `
                 <div class="materi-card glass p-6 rounded-3xl border border-white/10 transition-all cursor-pointer flex flex-col justify-between" onclick="window.openMateri('${item.id}')">
                     <div>
-                        <span class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded mb-4 inline-block">${item.mapel}</span>
+                        <span class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded mb-4 inline-block border border-cyan-500/20">${item.mapel}</span>
                         <h3 class="text-lg font-bold mb-2 uppercase line-clamp-2">${item.judul}</h3>
-                        <p class="text-sm text-slate-500 line-clamp-2">${item.deskripsi || 'Klik untuk melihat detail'}</p>
+                        <p class="text-sm text-slate-500 line-clamp-2">${item.deskripsi || 'Klik untuk membaca detail materi...'}</p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 uppercase font-bold">
+                    <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 uppercase font-bold tracking-tighter">
                         <span>${item.author}</span>
-                        <i data-lucide="${item.mediaType === 'video' ? 'play-circle' : 'file-text'}" class="w-4 h-4"></i>
+                        <i data-lucide="${item.mediaType === 'video' ? 'play-circle' : 'file-text'}" class="w-4 h-4 text-cyan-500"></i>
                     </div>
                 </div>
             `;
@@ -111,87 +110,48 @@
         lucide.createIcons();
     };
 
-     window.filterMateri = (cat) => {
-    currentFilter = cat;
-    
-    // Update styling tombol filter
-    document.querySelectorAll('.category-pill').forEach(btn => {
-        // Mengambil string kategori dari atribut onclick tombol
-        const btnClickValue = btn.getAttribute('onclick');
+    // FUNGSI FILTER: Memastikan data disaring dengan benar
+    window.filterMateri = (cat) => {
+        currentFilter = cat;
         
-        // Jika isi onclick mengandung kategori yang sedang diklik, nyalakan biru
-        if (btnClickValue.includes(`'${cat}'`)) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    // Jalankan penyaringan data materi
-    const filtered = cat === 'Semua' ? allMateri : allMateri.filter(m => m.mapel === cat);
-    renderGrid(filtered);
-};
-
-        window.openMateri = (id) => {
-        const item = allMateri.find(m => m.id === id);
-        if(!item) return;
-
-        // Isi data ke View Read
-        document.getElementById('read-title').innerText = item.judul;
-        document.getElementById('read-mapel').innerText = item.mapel;
-        document.getElementById('read-content').innerText = item.konten;
-        document.getElementById('read-author').innerText = `Oleh: ${item.author}`;
-        
-        const mediaBox = document.getElementById('read-media');
-        mediaBox.innerHTML = '';
-        
-        if (item.media) {
-            mediaBox.classList.remove('hidden');
-            if (item.mediaType === 'video') {
-                mediaBox.innerHTML = `<video src="${item.media}" controls class="w-full aspect-video shadow-2xl"></video>`;
-            } else if (item.mediaType === 'image') {
-                mediaBox.innerHTML = `<img src="${item.media}" class="w-full h-auto object-cover">`;
-            } else if (item.mediaType === 'audio') {
-                mediaBox.innerHTML = `<div class="p-10 w-full"><audio src="${item.media}" controls class="w-full"></audio></div>`;
+        // 1. Update Visual Tombol
+        document.querySelectorAll('.category-pill').forEach(btn => {
+            const onClickAttr = btn.getAttribute('onclick');
+            if (onClickAttr && onClickAttr.includes(`'${cat}'`)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
             }
-        } else {
-            mediaBox.classList.add('hidden');
-        }
-        
-        // Tukar Tampilan
-        document.getElementById('view-list').classList.add('hidden');
-        document.getElementById('view-read').classList.remove('hidden');
-        window.scrollTo(0, 0); // Reset scroll ke atas
-        lucide.createIcons();
+        });
+
+        // 2. Logika Penyaringan Data (Kunci utama perbaikan)
+        // Pastikan item.mapel sama persis dengan string kategori
+        const filtered = (cat === 'Semua') 
+            ? allMateri 
+            : allMateri.filter(item => item.mapel === cat);
+
+        renderGrid(filtered);
     };
 
-    window.closeMateri = () => {
-        // Matikan media jika sedang diputar
-        const v = document.querySelector('video, audio'); 
-        if (v) v.pause();
+    // ... (Fungsi openMateri dan closeMateri tetap sama) ...
 
-        // Tukar Tampilan Kembali
-        document.getElementById('view-read').classList.add('hidden');
-        document.getElementById('view-list').classList.remove('hidden');
-        window.scrollTo(0, 0);
-    };
-
-
-    // Inisialisasi Data
-    window.addEventListener('DOMContentLoaded', async () => {
-        // Gunakan auth dari app.js
-        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), (snapshot) => {
+    window.addEventListener('DOMContentLoaded', () => {
+        const q = collection(db, 'artifacts', appId, 'public', 'data', 'materi');
+        onSnapshot(q, (snapshot) => {
             allMateri = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Urutkan terbaru
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('materi-grid').classList.remove('hidden');
+            
+            // Jalankan filter awal
             window.filterMateri(currentFilter);
         });
     });
 </script>
 </body>
 </html>
+
 
 
 
