@@ -69,10 +69,11 @@
                 
                 <!-- Dropdown -->
                 <div class="absolute right-0 mt-2 w-48 glass rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/20 text-red-400 text-sm transition-colors">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
-                    </button>
+    <a href="profile.html" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-cyan-500/20 text-cyan-400 text-sm transition-colors">
+        <i data-lucide="user-circle" class="w-4 h-4"></i> Profil Saya
+    </a>
                 </div>
+                
             </div>
         </div>
     </nav>
@@ -189,11 +190,6 @@
 
         // Initialize Icons
         lucide.createIcons();
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
     </script>
 </body>
 </html>
