@@ -5,160 +5,230 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stellar Academy - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; }
-        .glass { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .neon-text { background: linear-gradient(to right, #22d3ee, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .tester-card { border: 1px dashed #f59e0b; background: rgba(245, 158, 11, 0.05); }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050505;
+        }
+
+        .glass {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-text {
+            background: linear-gradient(to right, #22d3ee, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
     </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="text-slate-100 overflow-x-hidden">
 
-    <!-- Navigasi Atas -->
-    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <!-- Background Effects -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                <i data-lucide="layout-grid" class="text-white w-6 h-6"></i>
+            <div class="p-2 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-lg shadow-lg">
+                <i data-lucide="rocket" class="text-white w-6 h-6"></i>
             </div>
-            <div>
-                <h2 class="font-black text-lg tracking-tighter uppercase leading-none">Stellar</h2>
-                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Academy</span>
-            </div>
+            <h1 class="text-xl font-extrabold tracking-tighter neon-text">ASTRA LEARNING</h1>
         </div>
-        
+
         <div class="flex items-center gap-4">
-            <div class="hidden md:block text-right">
-                <p id="nav-user-name" class="text-sm font-bold uppercase text-slate-200">Loading...</p>
-                <p id="nav-user-role" class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Accessing Node</p>
+            <div id="role-badge" class="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-wider">
+                <!-- Icon & Role injected by JS -->
             </div>
-            <button onclick="handleLogout()" class="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-500 transition-all">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-            </button>
+            <div id="tester-control" class="hidden flex items-center gap-2">
+    <button onclick="switchTesterRole()" class="px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[10px] font-black uppercase hover:bg-amber-500/40 transition-all">
+        <i data-lucide="refresh-cw" class="inline w-3 h-3 mr-1"></i> Switch Role
+    </button>
+            </div>
+            
+
+            <div class="relative group">
+                <button class="flex items-center gap-2 p-1.5 pr-4 rounded-full glass hover:bg-white/10 transition-all">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center border border-white/30">
+                        <i data-lucide="user" class="text-white w-4 h-4"></i>
+                    </div>
+                    <span id="display-name" class="text-sm font-bold hidden sm:inline">User</span>
+                </button>
+                
+                <!-- Dropdown -->
+                <div class="absolute right-0 mt-2 w-48 glass rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+    <a href="profile.html" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-cyan-500/20 text-cyan-400 text-sm transition-colors">
+        <i data-lucide="user-circle" class="w-4 h-4"></i> Profil Saya
+    </a>
+                </div>
+                
+            </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-5xl mx-auto px-6 pt-10">
-        
-        <!-- Header Welcome -->
-        <header class="mb-10">
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter mb-2">Selamat Datang, <br><span id="hero-name" class="neon-text">Explorer</span></h1>
-            <p class="text-slate-500 font-medium">Sistem manajemen pembelajaran SDN Widarasari.</p>
-        </header>
-
-        <!-- Panel Tester (Hanya muncul jika isTester === true) -->
-        <section id="tester-control" class="hidden mb-10 p-6 rounded-3xl tester-card relative overflow-hidden">
-            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded">DEBUG MODE</span>
-                        <h3 class="font-bold text-amber-500">Tester Virtual Identity</h3>
-                    </div>
-                    <p class="text-sm text-slate-400">Gunakan ini untuk berpindah hak akses admin/murid tanpa login ulang.</p>
-                </div>
-                <button onclick="switchTesterRole()" class="bg-amber-500 hover:bg-amber-400 text-black px-6 py-3 rounded-2xl font-black text-sm transition-all flex items-center gap-2">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    SWITCH ROLE & IDENTITY
-                </button>
-            </div>
-        </section>
-
-        <!-- Grid Menu Berdasarkan Role -->
-        <div id="menu-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Menu akan di-render oleh JS -->
+    <main class="relative z-10 pt-28 pb-12 px-6 max-w-7xl mx-auto">
+        <div class="mb-12">
+            <p class="text-cyan-400 font-bold tracking-[0.3em] text-[10px] mb-2 uppercase">Systems Online</p>
+            <h2 class="text-4xl md:text-5xl font-black mb-4">
+                Selamat Datang, <span id="welcome-name" class="neon-text">Explorer</span>
+            </h2>
+            <div class="h-1.5 w-24 bg-gradient-to-r from-cyan-500 to-transparent rounded-full"></div>
         </div>
 
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Column: Actions -->
+            <div class="lg:col-span-8 space-y-8">
+                <h3 class="text-sm font-black flex items-center gap-2 text-slate-500 uppercase tracking-widest">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> Operasi Dashboard
+                </h3>
+                
+                <div id="action-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Actions injected by JS based on Role -->
+                </div>
+            </div>
+
+          <div class="glass p-6 rounded-[2rem] space-y-6">
+    <a href="pengumuman.html" class="block border-l-2 border-cyan-500 pl-4 py-1 hover:bg-white/5 transition-colors">
+        <p class="text-[10px] text-slate-500 mb-1">BARU • 2 jam lalu</p>
+        <h4 class="text-sm font-bold">Maintenance Sektor 7 Selesai</h4>
+    </a>
+    <a href="pengumuman.html" class="block border-l-2 border-purple-500 pl-4 py-1 hover:bg-white/5 transition-colors">
+        <p class="text-[10px] text-slate-500 mb-1">EVENT • 5 jam lalu</p>
+        <h4 class="text-sm font-bold">Misi Nebula Aktif</h4>
+    </a>
+</div>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <script type="module">
-        import { auth, logout } from './app.js';
-
-        // State Global
-        const userName = localStorage.getItem('userName') || 'Explorer';
+    <script>
+        // Load data from LocalStorage
         const userRole = localStorage.getItem('userRole') || 'murid';
-        const isTester = localStorage.getItem('isTester') === 'true';
+        const userName = localStorage.getItem('userName') || 'Guest';
 
-        // Inisialisasi UI
-        function initDashboard() {
-            document.getElementById('nav-user-name').innerText = userName;
-            document.getElementById('nav-user-role').innerText = userRole === 'admin' ? 'Teacher / Admin' : 'Student Access';
-            document.getElementById('hero-name').innerText = userName;
+        // Initialize UI
+        document.getElementById('display-name').innerText = userName;
+        document.getElementById('welcome-name').innerText = userName;
 
-            if (isTester) {
-                document.getElementById('tester-control').classList.remove('hidden');
-            }
-
-            renderMenu(userRole);
-            lucide.createIcons();
+        const roleBadge = document.getElementById('role-badge');
+        if (userRole === 'admin') {
+            roleBadge.innerHTML = `<i data-lucide="shield-check" class="text-amber-400 w-4 h-4"></i> Mode: Admin`;
+            roleBadge.classList.add('text-amber-400');
+        } else {
+            roleBadge.innerHTML = `<i data-lucide="graduation-cap" class="text-cyan-400 w-4 h-4"></i> Mode: Murid`;
+            roleBadge.classList.add('text-cyan-400');
         }
+        roleBadge.classList.remove('hidden');
 
-        function renderMenu(role) {
-            const container = document.getElementById('menu-container');
-            let html = '';
+      // Render Action Buttons based on Role
+const actionGrid = document.getElementById('action-grid');
+const adminActions = [
+    { icon: 'book-open', title: 'Buat Materi', desc: 'Susun kurikulum baru', color: 'cyan', link: 'buatmateri.html' },
+    { icon: 'gamepad-2', title: 'Buat Latihan', desc: 'Rancang simulasi kuis', color: 'purple', link: 'buatlatihan.html' },
+    { icon: 'trophy', title: 'Buat Tantangan', desc: 'Siapkan misi ujian', color: 'amber', link: 'buattantangan.html' },
+    { icon: 'megaphone', title: 'Siaran', desc: 'Kirim pengumuman massal', color: 'rose', link: 'siaran.html' }
+];
 
-            if (role === 'admin') {
-                html = `
-                    <a href="buatmateri.html" class="glass group p-8 rounded-3xl hover:border-cyan-500/50 transition-all">
-                        <div class="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <i data-lucide="plus-circle" class="text-cyan-400 w-8 h-8"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-2">Buat Materi</h3>
-                        <p class="text-slate-500 text-sm">Publikasikan modul ajar baru ke dalam sistem orbit siswa.</p>
-                    </a>
-                    <a href="#" class="glass group p-8 rounded-3xl hover:border-purple-500/50 transition-all opacity-50 cursor-not-allowed">
-                        <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6">
-                            <i data-lucide="users" class="text-purple-400 w-8 h-8"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-2">Kelola Murid</h3>
-                        <p class="text-slate-500 text-sm">Pantau statistik dan progres belajar armada kelas.</p>
-                    </a>
-                `;
-            } else {
-                html = `
-                    <a href="materi.html" class="glass group p-8 rounded-3xl hover:border-cyan-500/50 transition-all">
-                        <div class="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <i data-lucide="book-open" class="text-cyan-400 w-8 h-8"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-2">Materi Belajar</h3>
-                        <p class="text-slate-500 text-sm">Akses semua modul dan video pembelajaran dari bapak/ibu guru.</p>
-                    </a>
-                    <a href="#" class="glass group p-8 rounded-3xl hover:border-green-500/50 transition-all opacity-50 cursor-not-allowed">
-                        <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6">
-                            <i data-lucide="award" class="text-green-400 w-8 h-8"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-2">Tugas & Kuis</h3>
-                        <p class="text-slate-500 text-sm">Selesaikan misi harian dan kumpulkan poin prestasi.</p>
-                    </a>
-                `;
-            }
-            container.innerHTML = html;
-        }
+const muridActions = [
+    { icon: 'book-open', title: 'Belajar', desc: 'Akses database materi', color: 'cyan', link: 'belajar.html' },
+    { icon: 'gamepad-2', title: 'Main Kuis', desc: 'Uji kemampuan simulasi', color: 'purple', link: 'mainkuis.html' },
+    { icon: 'trophy', title: 'Ujian', desc: 'Hadapi tantangan utama', color: 'amber', link: 'ujian.html' }
+];
 
-        // Ekspos ke global window untuk onClick di HTML
-        window.handleLogout = async () => {
-            if(confirm("Keluar dari sistem?")) {
-                await logout();
-                window.location.href = 'index.html';
-            }
-        };
 
-        window.switchTesterRole = () => {
-            const currentRole = localStorage.getItem('userRole');
-            if (currentRole === 'admin') {
-                localStorage.setItem('userRole', 'murid');
-                localStorage.setItem('userName', 'DEV_MURID');
-            } else {
-                localStorage.setItem('userRole', 'admin');
-                localStorage.setItem('userName', 'DEV_ADMIN');
-            }
-            window.location.reload();
-        };
+        const actions = userRole === 'admin' ? adminActions : muridActions;
 
-        initDashboard();
+        actionGrid.innerHTML = actions.map(act => `
+    <a href="${act.link}" class="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col items-start gap-4 transition-all hover:bg-white/10 hover:scale-[1.02] group">
+        <div class="p-3 rounded-2xl bg-white/5 group-hover:bg-cyan-500/20 transition-colors">
+            <i data-lucide="${act.icon}" class="w-8 h-8 text-cyan-400"></i>
+        </div>
+        <div class="text-left">
+            <h4 class="font-bold text-lg">${act.title}</h4>
+            <p class="text-xs text-slate-500 leading-relaxed">${act.desc}</p>
+        </div>
+    </a>
+`).join('');
+
+
+
+        if (userRole === 'admin') {
+    actionGrid.innerHTML += `
+        <div class="sm:col-span-2 mt-4 w-full">
+            <a href="kelolamurid.html" class="w-full p-6 rounded-[2rem] glass flex items-center justify-between group hover:border-cyan-500/50">
+                <div class="flex items-center gap-5">
+                    <div class="p-4 rounded-2xl bg-cyan-500/20 border border-cyan-500/30">
+                        <i data-lucide="users" class="text-cyan-400 w-8 h-8"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xl font-black uppercase">Kelola Murid</h4>
+                        <p class="text-sm text-slate-500 tracking-tight">Pantau hasil belajar & progres armada</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="group-hover:translate-x-2 transition-transform"></i>
+            </a>
+        </div>
+    `;
+}
+
+
+        // Initialize Icons
+        lucide.createIcons();
+        // Cek apakah user adalah tester
+const isTester = localStorage.getItem('isTester') === 'true';
+
+if (isTester) {
+    // Tampilkan tombol kontrol jika akun adalah tester
+    document.getElementById('tester-control').classList.remove('hidden');
+}
+
+function switchTesterRole() {
+    // Ambil role saat ini
+    const currentRole = localStorage.getItem('userRole');
+    
+    // Tentukan role dan nama baru berdasarkan switch
+    let newRole, newName;
+    
+    if (currentRole === 'admin') {
+        newRole = 'murid';
+        newName = 'DEV_MURID'; // Nama otomatis berubah saat switch ke murid
+    } else {
+        newRole = 'admin';
+        newName = 'DEV_ADMIN'; // Nama otomatis berubah saat switch ke admin
+    }
+    
+    // Simpan perubahan ke localStorage
+    localStorage.setItem('userRole', newRole);
+    localStorage.setItem('userName', newName); // Update nama di storage agar dashboard ikut berubah
+    
+    // Reload halaman untuk memperbarui UI
+    window.location.reload();
+}
+
+        
     </script>
 </body>
 </html>
+
 
 
