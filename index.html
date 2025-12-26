@@ -11,19 +11,53 @@
         body { background-color: var(--bg-deep); color: white; font-family: 'Baloo 2', cursive; margin: 0; overflow-x: hidden; min-height: 100vh; }
         #star-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at center, #0d1117 0%, #02040a 100%); }
         .main-container { width: 100%; padding: 20px 15px 100px 15px; display: flex; flex-direction: column; gap: 25px; }
-        .name-card { width: 75%; min-height: 90px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 3px solid var(--neon-clr); border-radius: 25px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.3s ease; box-shadow: 0 0 15px var(--neon-shadow); }
+        
+        .name-card { 
+            width: 75%; min-height: 90px; 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(10px); 
+            border: 3px solid var(--neon-clr); 
+            border-radius: 25px; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; position: relative; transition: all 0.3s ease; 
+            box-shadow: 0 0 15px var(--neon-shadow); 
+        }
+        
+        .name-card.claimed {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(1);
+            border-style: dashed;
+        }
+
         .name-card:nth-child(odd) { align-self: flex-start; margin-right: auto; }
         .name-card:nth-child(even) { align-self: flex-end; margin-left: auto; }
-        .name-card:hover { transform: scale(1.05); background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 30px var(--neon-clr); z-index: 10; }
-        .student-name { font-size: 2rem; font-weight: 800; color: white; letter-spacing: 2px; paint-order: stroke fill; -webkit-text-stroke: 5px var(--neon-clr); text-shadow: 0 0 10px var(--neon-clr); line-height: 1.2; text-align: center; padding: 5px 15px; }
+        
+        .name-card:not(.claimed):hover { 
+            transform: scale(1.05); 
+            background: rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 0 30px var(--neon-clr); 
+            z-index: 10; 
+        }
+
+        .student-name { 
+            font-size: 2rem; font-weight: 800; color: white; letter-spacing: 2px; 
+            paint-order: stroke fill; -webkit-text-stroke: 5px var(--neon-clr); 
+            text-shadow: 0 0 10px var(--neon-clr); line-height: 1.2; text-align: center; padding: 5px 15px; 
+        }
+
         .clr-cyan { --neon-clr: #00f2ff; --neon-shadow: rgba(0, 242, 255, 0.3); }
         .clr-pink { --neon-clr: #ff00ff; --neon-shadow: rgba(255, 0, 255, 0.3); }
         .clr-lime { --neon-clr: #00ff88; --neon-shadow: rgba(0, 255, 136, 0.3); }
         .clr-gold { --neon-clr: #ffcc00; --neon-shadow: rgba(255, 204, 0, 0.3); }
         .clr-purple { --neon-clr: #bc13fe; --neon-shadow: rgba(188, 19, 254, 0.3); }
         .clr-orange { --neon-clr: #ff6b00; --neon-shadow: rgba(255, 107, 0, 0.3); }
+
         .admin-tag { position: absolute; top: -10px; left: 20px; background: var(--neon-clr); color: black; padding: 0 10px; border-radius: 8px; font-size: 10px; font-weight: 900; font-family: 'Orbitron', sans-serif; }
+        
         @media (min-width: 768px) { .name-card { width: 500px; min-height: 110px; } .student-name { font-size: 3rem; } }
+        
+        .error-msg { color: #ff4444; font-size: 12px; margin-top: 10px; font-family: sans-serif; }
     </style>
 </head>
 <body>
@@ -33,20 +67,27 @@
         <p class="text-[10px] text-cyan-400 uppercase tracking-[0.3em]">Pilih Namamu</p>
     </header>
 
-    <div id="zigzag-list" class="main-container"></div>
+    <div id="zigzag-list" class="main-container">
+        <!-- List loading... -->
+        <div class="text-center text-slate-500 italic">Menghubungkan ke satelit...</div>
+    </div>
 
+    <!-- Modal Login -->
     <div id="login-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md px-6">
         <div id="modal-box" class="border-4 p-8 rounded-[40px] bg-gray-950 text-center w-full max-w-sm">
             <h2 id="modal-name" class="text-4xl font-black mb-8 text-white">NAME</h2>
-            <button id="confirm-btn" onclick="confirmEntry()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-lg hover:bg-cyan-400 transition-all uppercase">
+            <button id="confirm-btn" class="w-full py-4 bg-white text-black rounded-2xl font-black text-lg hover:bg-cyan-400 transition-all uppercase">
                 AKTIVASI POS
             </button>
-            <button onclick="closeModal()" class="mt-6 text-gray-500 uppercase text-[10px]">Kembali</button>
+            <div id="error-display" class="error-msg hidden"></div>
+            <button id="close-btn" class="mt-6 text-gray-500 uppercase text-[10px]">Kembali</button>
         </div>
     </div>
 
-    <script>
-        const users = [
+    <script type="module">
+        import { loginWithName, subscribeNames } from './app.js';
+
+        const usersList = [
             { n: "ALPHA", r: "admin", c: "clr-gold" },
             { n: "AINUN", r: "murid", c: "clr-cyan" },
             { n: "AKBAR", r: "murid", c: "clr-pink" },
@@ -71,52 +112,95 @@
 
         let selected = null;
         let isProcessing = false;
+        let claimedNames = {};
+
+        // Mendengarkan perubahan di Firestore secara realtime
+        subscribeNames((data) => {
+            claimedNames = data;
+            render();
+        });
 
         function render() {
             const list = document.getElementById('zigzag-list');
-            list.innerHTML = users.map((u, i) => `
-                <div class="name-card ${u.c}" onclick="openModal(${i})">
-                    ${u.r === 'admin' ? '<div class="admin-tag">COMMANDER</div>' : ''}
-                    <div class="student-name">${u.n}</div>
-                </div>
-            `).join('');
+            list.innerHTML = usersList.map((u, i) => {
+                const isClaimed = claimedNames[u.n] && claimedNames[u.n].claimedBy;
+                return `
+                    <div class="name-card ${u.c} ${isClaimed ? 'claimed' : ''}" 
+                         data-idx="${i}">
+                        ${u.r === 'admin' ? '<div class="admin-tag">COMMANDER</div>' : ''}
+                        <div class="student-name">${u.n}</div>
+                        ${isClaimed ? '<div class="absolute bottom-2 right-4 text-[8px] text-white/40 italic">OCCUPIED</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Tambah event listener manual karena innerHTML menghapus listener sebelumnya
+            document.querySelectorAll('.name-card').forEach(card => {
+                card.onclick = () => {
+                    const idx = card.getAttribute('data-idx');
+                    const user = usersList[idx];
+                    const isClaimed = claimedNames[user.n] && claimedNames[user.n].claimedBy;
+                    if(!isClaimed) openModal(idx);
+                };
+            });
         }
 
-        function openModal(idx) {
-            if(isProcessing) return; // Mencegah klik saat login sedang diproses
-            selected = users[idx];
+        window.openModal = function(idx) {
+            if(isProcessing) return;
+            selected = usersList[idx];
             const modal = document.getElementById('login-modal');
             const mName = document.getElementById('modal-name');
             const mBox = document.getElementById('modal-box');
+            
+            document.getElementById('error-display').classList.add('hidden');
             mName.innerText = selected.n;
             mName.style.webkitTextStroke = `6px var(--neon-clr)`;
             mBox.style.borderColor = `var(--neon-clr)`;
             mBox.style.boxShadow = `0 0 50px var(--neon-clr)`;
             modal.classList.remove('hidden');
-        }
+        };
 
-        function closeModal() {
+        window.closeModal = function() {
             if(isProcessing) return;
             document.getElementById('login-modal').classList.add('hidden');
-        }
+        };
 
-        function confirmEntry() {
-            if (selected && !isProcessing) {
-                isProcessing = true; // Kunci agar tidak bisa klik nama lain
-                const btn = document.getElementById('confirm-btn');
-                btn.innerText = "AUTHENTICATING...";
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
+        async function confirmEntry() {
+            if (!selected || isProcessing) return;
 
-                // Simpan ke storage
-                localStorage.setItem('userRole', selected.r);
-                localStorage.setItem('userName', selected.n);
+            const btn = document.getElementById('confirm-btn');
+            const errDiv = document.getElementById('error-display');
+            
+            isProcessing = true;
+            btn.innerText = "AUTHENTICATING...";
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            errDiv.classList.add('hidden');
+
+            try {
+                // Eksekusi Login Firebase dari app.js
+                const result = await loginWithName(selected.n, selected.r);
                 
-                // Beri jeda sedikit untuk efek dramatis sistem login
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 800);
+                if (result.success) {
+                    btn.innerText = "ACCESS GRANTED";
+                    btn.style.backgroundColor = "#00ff88";
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 800);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                isProcessing = false;
+                btn.innerText = "AKTIVASI POS";
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                errDiv.innerText = error.message === 'taken' ? "Nama sudah digunakan orang lain!" : error.message;
+                errDiv.classList.remove('hidden');
             }
         }
+
+        // Bind events ke window agar bisa diakses HTML onclick
+        document.getElementById('confirm-btn').onclick = confirmEntry;
+        document.getElementById('close-btn').onclick = closeModal;
 
         // Bintang Latar
         const canvas = document.getElementById('star-canvas');
