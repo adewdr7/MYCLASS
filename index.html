@@ -12,13 +12,17 @@
 </head>
 <body>
     <!-- ... (HTML dari login.html tetap sama) ... -->
+    <main class="min-h-screen flex items-center justify-center py-16">
+      <div class="w-full max-w-3xl p-6 bg-black/60 rounded-3xl border border-white/10">
+        <h1 class="text-2xl font-bold mb-4">Pilih Nama Anda</h1>
+        <div id="usersGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+      </div>
+    </main>
     
     <script type="module">
-        import { loginWithName } from './app.js';
-        
-        // ... (kode animasi bintang tetap sama) ...
-        
-        // Data user - HARDCODED (sesuai permintaan)
+        import { loginWithName, subscribeNames } from './app.js';
+
+        // Data user - HARDCODED
         const users = [
             { n: "ALPHA", r: "admin", c: "clr-gold" },
             { n: "AINUN", r: "murid", c: "clr-cyan" },
@@ -42,29 +46,59 @@
             { n: "ARESHA", r: "murid", c: "clr-lime" }
         ];
 
-        let selected = null;
+        const grid = document.getElementById('usersGrid');
 
-        // ... (fungsi render, openModal, closeModal tetap sama) ...
-
-        // UPDATED: Fungsi confirmEntry dengan Firebase Auth
-        async function confirmEntry() {
-            if (selected) {
-                try {
-                    const result = await loginWithName(selected.n, selected.r);
-                    if (result.success) {
-                        // Redirect ke dashboard
+        function render() {
+            grid.innerHTML = '';
+            users.forEach(u => {
+                const btn = document.createElement('button');
+                btn.className = 'seat p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10';
+                btn.textContent = u.n;
+                btn.dataset.username = u.n;
+                btn.dataset.role = u.r;
+                btn.dataset.color = u.c;
+                btn.addEventListener('click', async () => {
+                    btn.disabled = true;
+                    const res = await loginWithName(u.n, u.r);
+                    if (res.success) {
                         window.location.href = 'dashboard.html';
                     } else {
-                        alert('Login gagal: ' + result.error);
+                        alert('Login gagal: ' + (res.error || 'Nama sudah diambil'));
+                        btn.disabled = false;
                     }
-                } catch (error) {
-                    alert('Terjadi kesalahan: ' + error.message);
-                }
-            }
+                });
+                grid.appendChild(btn);
+            });
         }
 
+        // subscribe realtime updates and disable taken names
+        subscribeNames((data) => {
+            const seats = document.querySelectorAll('.seat');
+            const myUid = localStorage.getItem('userUid');
+            seats.forEach(el => {
+                const name = el.dataset.username;
+                const entry = data && data[name];
+                if (entry && entry.claimedBy) {
+                    // if claimed by someone else -> disable
+                    if (entry.claimedBy !== myUid) {
+                        el.disabled = true;
+                        el.classList.add('opacity-60', 'cursor-not-allowed');
+                        el.title = 'Sudah diambil';
+                    } else {
+                        // claimed by me -> keep enabled
+                        el.disabled = false;
+                        el.classList.remove('opacity-60', 'cursor-not-allowed');
+                        el.title = 'Anda telah memilih nama ini';
+                    }
+                } else {
+                    el.disabled = false;
+                    el.classList.remove('opacity-60', 'cursor-not-allowed');
+                    el.title = '';
+                }
+            });
+        });
+
         render();
-        window.addEventListener('resize', initStars);
     </script>
 </body>
 </html>
