@@ -16,49 +16,59 @@
     </style>
 </head>
 <body class="p-5 md:p-10">
-    
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-5 mb-10">
-        <div>
-            <a href="dashboard.html" class="flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-2 text-sm">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
-            </a>
-            <h1 class="text-3xl font-black uppercase tracking-tighter">Exploration <span class="text-cyan-400">Deck</span></h1>
-            <p class="text-slate-400">Materi tersinkronisasi otomatis dengan Cloud.</p>
+    <div id="view-list">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-5 mb-10">
+            <div>
+                <a href="dashboard.html" class="flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-2 text-sm">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
+                </a>
+                <h1 class="text-3xl font-black uppercase tracking-tighter">Exploration <span class="text-cyan-400">Deck</span></h1>
+                <p class="text-slate-400">Materi tersinkronisasi otomatis dengan Cloud.</p>
+            </div>
         </div>
-    </div>
 
-    <!-- Filter -->
-    <div class="max-w-6xl mx-auto mb-8 overflow-x-auto pb-4">
-        <div class="flex items-center gap-3" id="filter-container">
-            <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Semua</button>
-            <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Pancasila</button>
-            <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Indonesia</button>
-            <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Inggris</button>
-            <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">PJOK</button>
-            <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Agama</button>
+        <div class="max-w-6xl mx-auto mb-8 overflow-x-auto pb-4">
+            <div class="flex items-center gap-3" id="filter-container">
+                <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Semua</button>
+                <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Pancasila</button>
+                <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Indonesia</button>
+                <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Inggris</button>
+                <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">PJOK</button>
+                <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Agama</button>
+            </div>
         </div>
+
+        <div id="loading" class="max-w-6xl mx-auto text-center py-20">
+            <div class="animate-spin w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">Menghubungkan ke Orbit...</p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden" id="materi-grid"></div>
     </div>
 
-    <!-- Loading State -->
-    <div id="loading" class="max-w-6xl mx-auto text-center py-20">
-        <div class="animate-spin w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-        <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">Menghubungkan ke Orbit...</p>
-    </div>
+    <div id="view-read" class="max-w-4xl mx-auto hidden">
+        <button onclick="window.closeMateri()" class="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-8 group">
+            <i data-lucide="chevron-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+            <span class="font-bold uppercase tracking-widest text-xs">Kembali ke Daftar</span>
+        </button>
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden" id="materi-grid"></div>
+        <div class="space-y-6">
+            <div class="space-y-2">
+                <span id="read-mapel" class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-md border border-cyan-500/20">MAPEL</span>
+                <h2 id="read-title" class="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">JUDUL MATERI</h2>
+                <p id="read-author" class="text-slate-500 text-sm font-medium uppercase tracking-widest italic pt-2">Oleh: Nama Guru</p>
+            </div>
 
-    <!-- Modal -->
-    <div id="materi-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden p-5 flex items-center justify-center">
-        <div class="glass w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-y-auto relative border-cyan-500/30">
-            <button onclick="window.closeModal()" class="absolute top-5 right-5 p-2 bg-white/10 rounded-full hover:bg-white/20 z-10"><i data-lucide="x" class="w-6 h-6"></i></button>
-            <div class="p-8">
-                <span id="modal-mapel" class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-md">MAPEL</span>
-                <h2 id="modal-title" class="text-3xl font-black mt-4 mb-2 uppercase italic">JUDUL</h2>
-                <div class="flex items-center gap-4 text-slate-500 text-xs mb-8">
-                    <span id="modal-author">Author</span>
+            <div id="read-media" class="w-full rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 min-h-[100px] flex items-center justify-center">
                 </div>
-                <div id="media-display" class="w-full rounded-2xl overflow-hidden mb-8 bg-black/40 border border-white/5 min-h-[200px] flex items-center justify-center"></div>
-                <div id="modal-content" class="text-slate-300 leading-relaxed whitespace-pre-wrap"></div>
+
+            <div class="glass p-8 md:p-12 rounded-[2rem] border-white/5 shadow-2xl">
+                <div id="read-content" class="text-slate-200 leading-relaxed whitespace-pre-wrap text-lg font-medium opacity-90">
+                    </div>
+            </div>
+            
+            <div class="py-10 text-center">
+                <button onclick="window.closeMateri()" class="px-10 py-4 rounded-2xl bg-white text-black font-black uppercase hover:bg-cyan-400 transition-all">Selesai Membaca</button>
             </div>
         </div>
     </div>
@@ -112,41 +122,50 @@
         renderGrid(filtered);
     };
 
-    window.openMateri = (id) => {
+        window.openMateri = (id) => {
         const item = allMateri.find(m => m.id === id);
         if(!item) return;
 
-        document.getElementById('modal-title').innerText = item.judul;
-        document.getElementById('modal-mapel').innerText = item.mapel;
-        document.getElementById('modal-content').innerText = item.konten;
-        document.getElementById('modal-author').innerText = `Oleh: ${item.author}`;
+        // Isi data ke View Read
+        document.getElementById('read-title').innerText = item.judul;
+        document.getElementById('read-mapel').innerText = item.mapel;
+        document.getElementById('read-content').innerText = item.konten;
+        document.getElementById('read-author').innerText = `Oleh: ${item.author}`;
         
-        const display = document.getElementById('media-display');
-        display.innerHTML = '';
+        const mediaBox = document.getElementById('read-media');
+        mediaBox.innerHTML = '';
         
         if (item.media) {
-            display.classList.remove('hidden');
+            mediaBox.classList.remove('hidden');
             if (item.mediaType === 'video') {
-                display.innerHTML = `<video src="${item.media}" controls class="w-full max-h-[400px]"></video>`;
+                mediaBox.innerHTML = `<video src="${item.media}" controls class="w-full aspect-video shadow-2xl"></video>`;
             } else if (item.mediaType === 'image') {
-                display.innerHTML = `<img src="${item.media}" class="w-full h-full object-contain">`;
+                mediaBox.innerHTML = `<img src="${item.media}" class="w-full h-auto object-cover">`;
             } else if (item.mediaType === 'audio') {
-                display.innerHTML = `<audio src="${item.media}" controls class="w-full p-10"></audio>`;
+                mediaBox.innerHTML = `<div class="p-10 w-full"><audio src="${item.media}" controls class="w-full"></audio></div>`;
             }
         } else {
-            display.classList.add('hidden');
+            mediaBox.classList.add('hidden');
         }
         
-        document.getElementById('materi-modal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+        // Tukar Tampilan
+        document.getElementById('view-list').classList.add('hidden');
+        document.getElementById('view-read').classList.remove('hidden');
+        window.scrollTo(0, 0); // Reset scroll ke atas
         lucide.createIcons();
     };
 
-    window.closeModal = () => {
-        document.getElementById('materi-modal').classList.add('hidden');
-        document.body.style.overflow = 'auto';
-        const v = document.querySelector('video, audio'); if (v) v.pause();
+    window.closeMateri = () => {
+        // Matikan media jika sedang diputar
+        const v = document.querySelector('video, audio'); 
+        if (v) v.pause();
+
+        // Tukar Tampilan Kembali
+        document.getElementById('view-read').classList.add('hidden');
+        document.getElementById('view-list').classList.remove('hidden');
+        window.scrollTo(0, 0);
     };
+
 
     // Inisialisasi Data
     window.addEventListener('DOMContentLoaded', async () => {
@@ -163,6 +182,7 @@
 </script>
 </body>
 </html>
+
 
 
 
