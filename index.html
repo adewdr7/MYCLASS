@@ -103,7 +103,7 @@
             { n: "AMORA", r: "murid", c: "clr-purple" },
             { n: "AZKA", r: "murid", c: "clr-orange" },
             { n: "DIMAS", r: "murid", c: "clr-cyan" },
-            { n: "FADIA", r: "murid", c: "clr-pink" },
+            { n: "ALFI", r: "murid", c: "clr-pink" },
             { n: "FHAREL", r: "murid", c: "clr-lime" },
             { n: "HAFIZA", r: "murid", c: "clr-purple" },
             { n: "JIHAN", r: "murid", c: "clr-orange" },
@@ -112,7 +112,7 @@
             { n: "PUJA", r: "murid", c: "clr-pink" },
             { n: "REZA.P", r: "murid", c: "clr-lime" },
             { n: "REZA.R", r: "murid", c: "clr-purple" },
-            { n: "SINTA", r: "murid", c: "clr-orange" },
+            { n: "DEWI", r: "murid", c: "clr-orange" },
             { n: "NOVA", r: "murid", c: "clr-cyan" },
             { n: "ALBY", r: "murid", c: "clr-pink" },
             { n: "ARESHA", r: "murid", c: "clr-lime" }
@@ -192,13 +192,20 @@
                 // Kita kirim parameter isTester (selected.isT) ke app.js
                 const result = await loginWithName(selected.n, selected.r, selected.isT || false);
                 
-                if (result.success) {
-                    btn.innerText = "ACCESS GRANTED";
-                    btn.style.backgroundColor = "#00ff88";
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 800);
-                } else {
+          // Di dalam file index.html
+if (result.success) {
+    // Simpan data user ke storage agar bisa dibaca di halaman lain
+    localStorage.setItem('userName', selected.n);
+    localStorage.setItem('userRole', selected.r);
+    localStorage.setItem('isTester', selected.isT || false);
+
+    btn.innerText = "ACCESS GRANTED";
+    btn.style.backgroundColor = "#00ff88";
+    setTimeout(() => {
+        window.location.href = 'dashboard.html';
+    }, 800);
+}
+ else {
                     throw new Error(result.error);
                 }
             } catch (error) {
