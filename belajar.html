@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stellar Academy - Pusat Belajar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <scriwindow.filterMateript src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
@@ -28,14 +28,15 @@
         </div>
 
         <div class="max-w-6xl mx-auto mb-8 overflow-x-auto pb-4">
-            <div class="flex items-center gap-3" id="filter-container">
-                <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Semua</button>
-                <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Pancasila</button>
-                <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Indonesia</button>
-                <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Inggris</button>
-                <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">PJOK</button>
-                <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Agama</button>
-            </div>
+           <div class="flex items-center gap-3" id="filter-container">
+    <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Semua</button>
+    <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Pancasila</button>
+    <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Indonesia</button>
+    <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Inggris</button>
+    <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">PJOK</button>
+    <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Agama</button>
+</div>
+
         </div>
 
         <div id="loading" class="max-w-6xl mx-auto text-center py-20">
@@ -110,17 +111,26 @@
         lucide.createIcons();
     };
 
-    window.filterMateri = (cat) => {
-        currentFilter = cat;
-        // Update styling tombol filter
-        document.querySelectorAll('.category-pill').forEach(b => {
-            const isMatch = (cat === 'Semua' && b.innerText === 'Semua') || (b.innerText === cat) || (cat === 'Agama Islam' && b.innerText === 'Agama') || (cat === 'Pendidikan Pancasila' && b.innerText === 'Pancasila');
-            b.classList.toggle('active', isMatch);
-        });
+     window.filterMateri = (cat) => {
+    currentFilter = cat;
+    
+    // Update styling tombol filter
+    document.querySelectorAll('.category-pill').forEach(btn => {
+        // Mengambil string kategori dari atribut onclick tombol
+        const btnClickValue = btn.getAttribute('onclick');
+        
+        // Jika isi onclick mengandung kategori yang sedang diklik, nyalakan biru
+        if (btnClickValue.includes(`'${cat}'`)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
 
-        const filtered = cat === 'Semua' ? allMateri : allMateri.filter(m => m.mapel === cat);
-        renderGrid(filtered);
-    };
+    // Jalankan penyaringan data materi
+    const filtered = cat === 'Semua' ? allMateri : allMateri.filter(m => m.mapel === cat);
+    renderGrid(filtered);
+};
 
         window.openMateri = (id) => {
         const item = allMateri.find(m => m.id === id);
