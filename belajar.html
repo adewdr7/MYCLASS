@@ -28,18 +28,16 @@
         </div>
 
         <div class="max-w-6xl mx-auto mb-8 overflow-x-auto pb-4">
-           <div class="flex items-center gap-3" id="filter-container">
-    <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Semua</button>
-    <button onclick="window.filterMateri('Matematika')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Matematika</button>
-    <button onclick="window.filterMateri('Bahasa Sunda')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Sunda</button>
-    </div>
-    <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Pancasila</button>
-    <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Indonesia</button>
-    <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Inggris</button>
-    <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">PJOK</button>
-    <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Agama</button>
-</div>
-
+            <div class="flex items-center gap-3" id="filter-container">
+                <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Semua</button>
+                <button onclick="window.filterMateri('Matematika')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Matematika</button>
+                <button onclick="window.filterMateri('Bahasa Sunda')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Sunda</button>
+                <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Pancasila</button>
+                <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Indonesia</button>
+                <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">B. Inggris</button>
+                <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">PJOK</button>
+                <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2 rounded-full border border-white/10 text-sm font-bold whitespace-nowrap">Agama</button>
+            </div>
         </div>
 
         <div id="loading" class="max-w-6xl mx-auto text-center py-20">
@@ -48,9 +46,8 @@
         </div>
 
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden" id="materi-grid"></div>
-    </div>
-
-    <div id="view-read" class="max-w-4xl mx-auto hidden">
+    </div> <div id="view-read" class="max-w-4xl mx-auto hidden">
+        </div>
         <button onclick="window.closeMateri()" class="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-8 group">
             <i data-lucide="chevron-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
             <span class="font-bold uppercase tracking-widest text-xs">Kembali ke Daftar</span>
@@ -195,6 +192,7 @@
 </script>
 </body>
 </html>
+
 
 
 
