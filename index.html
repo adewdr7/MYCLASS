@@ -88,9 +88,15 @@
 
         // Ditambahkan AKUN TESTER (isT: true) yang tidak akan terkunci
         const usersList = [
-            { n: "DEV_ADMIN", r: "admin", c: "clr-gold", isT: true },
-            { n: "DEV_MURID", r: "murid", c: "clr-cyan", isT: true },
-            { n: "ALPHA", r: "admin", c: "clr-gold" },
+    // TESTER & ADMIN UTAMA
+    { n: "DEV_ADMIN", r: "admin", c: "clr-gold", isT: true },
+    { n: "DEV_MURID", r: "murid", c: "clr-cyan", isT: true },
+
+    // GURU / COMMANDERS
+    { n: "IBU YAYAH", r: "admin", c: "clr-gold", mapel: "WALI KELAS / UMUM" },
+    { n: "BPK JAJANG", r: "admin", c: "clr-gold", mapel: "PJOK" },
+    { n: "IBU ILAH", r: "admin", c: "clr-gold", mapel: "B. INGGRIS" },
+    { n: "IBU LINA", r: "admin", c: "clr-gold", mapel: "PAI" },
             { n: "AINUN", r: "murid", c: "clr-cyan" },
             { n: "AKBAR", r: "murid", c: "clr-pink" },
             { n: "ALIFA", r: "murid", c: "clr-lime" },
@@ -122,21 +128,25 @@
         });
 
         function render() {
-            const list = document.getElementById('zigzag-list');
-            list.innerHTML = usersList.map((u, i) => {
-                // Akun tester (isT) tidak pernah dianggap claimed di UI
-                const isClaimed = !u.isT && claimedNames[u.n] && claimedNames[u.n].claimedBy;
-                return `
-                    <div class="name-card ${u.c} ${isClaimed ? 'claimed' : ''}" 
-                         data-idx="${i}">
-                        ${u.r === 'admin' ? '<div class="admin-tag">COMMANDER</div>' : ''}
-                        ${u.isT ? '<div class="tester-tag">TESTER MODE</div>' : ''}
-                        <div class="student-name">${u.n}</div>
-                        ${isClaimed ? '<div class="absolute bottom-2 right-4 text-[8px] text-white/40 italic">OCCUPIED</div>' : ''}
-                    </div>
-                `;
-            }).join('');
+    const list = document.getElementById('zigzag-list');
+    list.innerHTML = usersList.map((u, i) => {
+        const isClaimed = !u.isT && claimedNames[u.n] && claimedNames[u.n].claimedBy;
+        
+        // Cek apakah ini akun guru untuk menampilkan info mapel
+        const subText = u.mapel ? `<div class="text-[10px] text-white/60 mt-1 uppercase tracking-tighter">${u.mapel}</div>` : '';
 
+        return `
+            <div class="name-card ${u.c} ${isClaimed ? 'claimed' : ''}" data-idx="${i}">
+                ${u.r === 'admin' ? '<div class="admin-tag">COMMANDER</div>' : ''}
+                ${u.isT ? '<div class="tester-tag">TESTER MODE</div>' : ''}
+                <div class="flex flex-col items-center">
+                    <div class="student-name">${u.n}</div>
+                    ${subText} 
+                </div>
+                ${isClaimed ? '<div class="absolute bottom-2 right-4 text-[8px] text-white/40 italic">OCCUPIED</div>' : ''}
+            </div>
+        `;
+    }).join('');
             document.querySelectorAll('.name-card').forEach(card => {
                 card.onclick = () => {
                     const idx = card.getAttribute('data-idx');
@@ -221,4 +231,5 @@
     </script>
 </body>
 </html>
+
 
