@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Academy - Buat Materi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050505;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .glass {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-text {
+            background: linear-gradient(to right, #22d3ee, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        input, textarea, select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            outline: none !important;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #22d3ee !important;
+        }
+
+        .tester-badge {
+            background: linear-gradient(45deg, #f59e0b, #ef4444);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body class="p-5 md:p-10">
+    
+    <!-- Header Navigasi -->
+    <div class="max-w-4xl mx-auto flex items-center justify-between mb-10">
+        <a href="dashboard.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            <span>Kembali ke Dashboard</span>
+        </a>
+        <div class="text-right">
+            <h1 class="text-2xl font-black tracking-tighter uppercase neon-text">Mission Control</h1>
+            <p class="text-xs text-slate-500 uppercase tracking-widest font-bold">Modul Publikasi</p>
+        </div>
+    </div>
+
+    <!-- Tester Identity Switcher (Hanya muncul jika isTester === true) -->
+    <div id="tester-panel" class="max-w-4xl mx-auto mb-6 hidden">
+        <div class="glass border-orange-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="tester-badge text-[10px] font-black px-2 py-1 rounded-md text-white uppercase">Tester Mode</div>
+                <p class="text-sm text-slate-300 italic">Simulasikan identitas guru untuk tes filter mapel:</p>
+            </div>
+            <select id="tester-identity-select" class="p-2 rounded-lg text-sm glass cursor-pointer border-orange-500/50 min-w-[200px]">
+                <option value="DEV_ADMIN">Pilih Identitas Guru...</option>
+                <option value="IBU YAYAH">Ibu Yayah (Wali Kelas)</option>
+                <option value="BPK JAJANG">Bapak Jajang (PJOK)</option>
+                <option value="IBU ILAH">Ibu Ilah (B. Inggris)</option>
+                <option value="IBU LINA">Ibu Lina (PAI)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <div class="max-w-4xl mx-auto">
+        <div class="glass rounded-3xl p-8 border border-white/10 relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/10 blur-[100px]"></div>
+
+            <div class="flex items-center gap-4 mb-8">
+                <div class="p-3 rounded-2xl bg-cyan-500/20 border border-cyan-500/30">
+                    <i data-lucide="file-plus-2" class="text-cyan-400 w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Buat Materi Baru</h2>
+                    <p class="text-sm text-slate-400">Pastikan informasi modul sudah akurat sebelum dipublikasi</p>
+                </div>
+            </div>
+
+            <form id="materi-form" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-slate-300 ml-1">Judul Modul</label>
+                        <input type="text" id="judul" placeholder="Contoh: Tata Surya & Galaksi" class="w-full p-4 rounded-2xl transition-all" required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-slate-300 ml-1">Kategori Mata Pelajaran</label>
+                        <select id="mapel-select" class="w-full p-4 rounded-2xl transition-all appearance-none cursor-pointer" required>
+                            <!-- Opsi akan diisi otomatis -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-300 ml-1">Ringkasan (Snippet)</label>
+                    <input type="text" id="deskripsi" placeholder="Penjelasan singkat materi..." class="w-full p-4 rounded-2xl transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-300 ml-1">Konten Utama</label>
+                    <textarea id="konten" rows="8" placeholder="Tuliskan isi materi lengkap di sini..." class="w-full p-4 rounded-2xl transition-all resize-none" required></textarea>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-white/5">
+                    <div class="flex items-center gap-3 text-sm text-slate-500 bg-white/5 px-4 py-2 rounded-xl">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                        <span>Author: <b id="author-name" class="text-cyan-400">...</b></span>
+                    </div>
+                    <button type="submit" class="w-full md:w-auto px-10 py-4 bg-white hover:bg-cyan-400 text-black font-extrabold rounded-2xl transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                        SIMPAN KE CLOUD
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl border-cyan-500/50 text-cyan-400 font-bold hidden flex items-center gap-3 shadow-2xl z-50">
+        <i data-lucide="rocket"></i>
+        <span>Materi Berhasil Terkirim ke Orbit!</span>
+    </div>
+
+    <script>
+        // Database Aturan Filter Mapel
+        const guruMapel = {
+            "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Seni Budaya", "Bahasa Sunda"],
+            "BPK JAJANG": ["PJOK"],
+            "IBU ILAH": ["Bahasa Inggris"],
+            "IBU LINA": ["Agama Islam"],
+            "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
+        };
+
+        // State Login
+        let activeUser = localStorage.getItem('userName') || 'GUEST';
+        const isTester = localStorage.getItem('isTester') === 'true';
+
+        // Fungsi Utama untuk Update UI berdasarkan User yang dipilih
+        function updateFormIdentity(userName) {
+            document.getElementById('author-name').innerText = userName;
+            
+            const select = document.getElementById('mapel-select');
+            select.innerHTML = '<option value="" disabled selected>Pilih Pelajaran...</option>';
+            
+            const listMapel = guruMapel[userName] || ["Mata Pelajaran Umum"];
+            listMapel.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.innerText = m;
+                select.appendChild(opt);
+            });
+        }
+
+        // Jalankan saat load
+        window.onload = () => {
+            // Cek status tester
+            if (isTester) {
+                document.getElementById('tester-panel').classList.remove('hidden');
+                const testerSelect = document.getElementById('tester-identity-select');
+                
+                // Jika sedang login sebagai tester, set dropdown ke nama aslinya
+                testerSelect.value = activeUser;
+
+                testerSelect.addEventListener('change', (e) => {
+                    const simulatedUser = e.target.value;
+                    activeUser = simulatedUser; // Ubah user aktif sementara untuk pengujian
+                    updateFormIdentity(simulatedUser);
+                });
+            }
+
+            // Inisialisasi awal
+            updateFormIdentity(activeUser);
+            lucide.createIcons();
+        };
+
+        // Form Submission
+        document.getElementById('materi-form').onsubmit = function(e) {
+            e.preventDefault();
+
+            const dataMateri = {
+                judul: document.getElementById('judul').value,
+                mapel: document.getElementById('mapel-select').value,
+                deskripsi: document.getElementById('deskripsi').value,
+                konten: document.getElementById('konten').value,
+                author: activeUser, // Menggunakan user yang aktif (bisa hasil simulasi)
+                timestamp: new Date().toISOString()
+            };
+
+            console.log("DATA PUBLIKASI:", dataMateri);
+
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        };
+    </script>
+</body>
+</html>
+
