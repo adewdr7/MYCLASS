@@ -1,4 +1,4 @@
-// app.js - updated: Firestore transaction-based name claim + realtime subscription
+// app.js - Memastikan sinkronisasi dan penanganan error yang lebih baik
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -7,13 +7,12 @@ import {
   doc,
   setDoc,
   getDoc,
-  getDocs,
   runTransaction,
   serverTimestamp,
-  onSnapshot,
-  updateDoc
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Pastikan config ini sesuai dengan yang ada di console Firebase Anda
 const firebaseConfig = {
   apiKey: "AIzaSyAcXFgMa8H8eassILqMBsNZfPmicYiNJ40",
   authDomain: "sekolah-sdnwidarasari.firebaseapp.com",
@@ -27,7 +26,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Ensure auth state persists and store uid local for easy comparisons
 onAuthStateChanged(auth, (user) => {
   if (user) {
     localStorage.setItem('userUid', user.uid);
@@ -36,25 +34,32 @@ onAuthStateChanged(auth, (user) => {
 
 async function loginWithName(nama, role) {
   try {
-    // sign in anonymously first
+    // 1. Sign in secara Anonymous
     const userCredential = await signInAnonymously(auth);
     const user = userCredential.user;
     const uid = user.uid;
 
     const nameRef = doc(db, 'names', nama);
 
-    // run transaction to claim the name atomically
+    // 2. Transaksi: Klaim nama secara atomik agar tidak bisa double klik
     await runTransaction(db, async (tx) => {
       const snap = await tx.get(nameRef);
       const data = snap.exists() ? snap.data() : null;
-      if (!data || !data.claimedBy) {
-        tx.set(nameRef, { claimedBy: uid, role: role, claimedAt: serverTimestamp() }, { merge: true });
-      } else {
+      
+      // Jika sudah ada yang klaim dan orang itu bukan kita
+      if (data && data.claimedBy && data.claimedBy !== uid) {
         throw new Error('taken');
       }
+      
+      // Simpan klaim ke koleksi 'names'
+      tx.set(nameRef, { 
+        claimedBy: uid, 
+        role: role, 
+        claimedAt: serverTimestamp() 
+      }, { merge: true });
     });
 
-    // save user record
+    // 3. Simpan detail profil ke koleksi 'users'
     await setDoc(doc(db, 'users', uid), {
       nama: nama,
       role: role,
@@ -62,18 +67,15 @@ async function loginWithName(nama, role) {
       nameKey: nama
     }, { merge: true });
 
-    // persist locally
+    // 4. Simpan ke LocalStorage untuk Dashboard
     localStorage.setItem('userName', nama);
     localStorage.setItem('userRole', role);
     localStorage.setItem('userUid', uid);
 
     return { success: true, uid };
   } catch (error) {
-    if (error.message && error.message.toLowerCase().includes('taken')) {
-      return { success: false, error: 'Nama sudah diambil' };
-    }
-    console.error('loginWithName error', error);
-    return { success: false, error: error.message || String(error) };
+    console.error('Login Error:', error);
+    return { success: false, error: error.message };
   }
 }
 
@@ -81,10 +83,10 @@ function subscribeNames(onChange) {
   const col = collection(db, 'names');
   return onSnapshot(col, (snap) => {
     const data = {};
-    snap.forEach(d => data[d.id] = d.data());
+    snap.forEach(d => {
+        data[d.id] = d.data();
+    });
     onChange(data);
-  }, (err) => {
-    console.error('subscribeNames error', err);
   });
 }
 
@@ -96,12 +98,12 @@ async function releaseClaim(nameKey, uid) {
       const snap = await tx.get(nameRef);
       if (!snap.exists()) return;
       const data = snap.data();
-      if (data.claimedBy && data.claimedBy === uid) {
+      if (data.claimedBy === uid) {
         tx.update(nameRef, { claimedBy: null, claimedAt: null });
       }
     });
   } catch (err) {
-    console.error('releaseClaim error', err);
+    console.error('Release Error:', err);
   }
 }
 
@@ -113,12 +115,8 @@ async function logout() {
       await releaseClaim(nameKey, uid);
     }
     await signOut(auth);
-  } catch (err) {
-    console.warn('logout: signOut failed', err);
   } finally {
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userUid');
+    localStorage.clear();
     window.location.href = 'index.html';
   }
 }
