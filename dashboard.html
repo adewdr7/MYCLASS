@@ -206,17 +206,28 @@ function switchTesterRole() {
     // Ambil role saat ini
     const currentRole = localStorage.getItem('userRole');
     
-    // Tukar role
-    const newRole = currentRole === 'admin' ? 'murid' : 'admin';
+    // Tentukan role dan nama baru berdasarkan switch
+    let newRole, newName;
     
-    // Simpan role baru ke localStorage
+    if (currentRole === 'admin') {
+        newRole = 'murid';
+        newName = 'DEV_MURID'; // Nama otomatis berubah saat switch ke murid
+    } else {
+        newRole = 'admin';
+        newName = 'DEV_ADMIN'; // Nama otomatis berubah saat switch ke admin
+    }
+    
+    // Simpan perubahan ke localStorage
     localStorage.setItem('userRole', newRole);
+    localStorage.setItem('userName', newName); // Update nama di storage agar dashboard ikut berubah
     
-    // Reload halaman untuk memperbarui UI dashboard (tombol aksi, dsb)
+    // Reload halaman untuk memperbarui UI
     window.location.reload();
 }
+
         
     </script>
 </body>
 </html>
+
 
