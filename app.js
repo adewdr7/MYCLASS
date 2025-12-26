@@ -1,4 +1,4 @@
-// app.js - Memastikan sinkronisasi dan penanganan error yang lebih baik
+// app.js - Versi Update: Satu Nama Satu Login Permanen + Dukungan Akun Tester
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -12,7 +12,6 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Pastikan config ini sesuai dengan yang ada di console Firebase Anda
 const firebaseConfig = {
   apiKey: "AIzaSyAcXFgMa8H8eassILqMBsNZfPmicYiNJ40",
   authDomain: "sekolah-sdnwidarasari.firebaseapp.com",
@@ -32,45 +31,51 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-async function loginWithName(nama, role) {
+/**
+ * @param {string} nama - Nama yang dipilih
+ * @param {string} role - Role (admin/murid)
+ * @param {boolean} isTester - Jika true, tidak akan mengunci nama di database
+ */
+async function loginWithName(nama, role, isTester = false) {
   try {
-    // 1. Sign in secara Anonymous
     const userCredential = await signInAnonymously(auth);
     const user = userCredential.user;
     const uid = user.uid;
 
-    const nameRef = doc(db, 'names', nama);
+    // HANYA kunci nama jika BUKAN akun tester
+    if (!isTester) {
+      const nameRef = doc(db, 'names', nama);
 
-    // 2. Transaksi: Klaim nama secara atomik agar tidak bisa double klik
-    await runTransaction(db, async (tx) => {
-      const snap = await tx.get(nameRef);
-      const data = snap.exists() ? snap.data() : null;
-      
-      // Jika sudah ada yang klaim dan orang itu bukan kita
-      if (data && data.claimedBy && data.claimedBy !== uid) {
-        throw new Error('taken');
-      }
-      
-      // Simpan klaim ke koleksi 'names'
-      tx.set(nameRef, { 
-        claimedBy: uid, 
-        role: role, 
-        claimedAt: serverTimestamp() 
-      }, { merge: true });
-    });
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(nameRef);
+        const data = snap.exists() ? snap.data() : null;
+        
+        // Cek jika sudah diklaim orang lain
+        if (data && data.claimedBy && data.claimedBy !== uid) {
+          throw new Error('taken');
+        }
+        
+        tx.set(nameRef, { 
+          claimedBy: uid, 
+          role: role, 
+          claimedAt: serverTimestamp() 
+        }, { merge: true });
+      });
+    }
 
-    // 3. Simpan detail profil ke koleksi 'users'
+    // Simpan profil ke users (untuk data dashboard)
     await setDoc(doc(db, 'users', uid), {
       nama: nama,
       role: role,
       lastLogin: new Date().toISOString(),
-      nameKey: nama
+      nameKey: nama,
+      isTester: isTester
     }, { merge: true });
 
-    // 4. Simpan ke LocalStorage untuk Dashboard
     localStorage.setItem('userName', nama);
     localStorage.setItem('userRole', role);
     localStorage.setItem('userUid', uid);
+    localStorage.setItem('isTester', isTester);
 
     return { success: true, uid };
   } catch (error) {
@@ -90,30 +95,15 @@ function subscribeNames(onChange) {
   });
 }
 
+// Fungsi ini sengaja dikosongkan/dinonaktifkan untuk mendukung "Satu Login Permanen"
 async function releaseClaim(nameKey, uid) {
-  if (!nameKey || !uid) return;
-  const nameRef = doc(db, 'names', nameKey);
-  try {
-    await runTransaction(db, async (tx) => {
-      const snap = await tx.get(nameRef);
-      if (!snap.exists()) return;
-      const data = snap.data();
-      if (data.claimedBy === uid) {
-        tx.update(nameRef, { claimedBy: null, claimedAt: null });
-      }
-    });
-  } catch (err) {
-    console.error('Release Error:', err);
-  }
+  // Jika ingin benar-benar mengunci, jangan lakukan apa-apa di sini
+  console.log("Release claim dinonaktifkan untuk mode pengembangan satu-login.");
 }
 
 async function logout() {
-  const nameKey = localStorage.getItem('userName');
-  const uid = localStorage.getItem('userUid');
+  // Kita tidak memanggil releaseClaim agar status di Firestore tetap 'claimed'
   try {
-    if (nameKey && uid) {
-      await releaseClaim(nameKey, uid);
-    }
     await signOut(auth);
   } finally {
     localStorage.clear();
