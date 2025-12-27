@@ -1,17 +1,29 @@
-// app.js - Versi Update: Satu Nama Satu Login Permanen + Dukungan Akun Tester
+// app.js - FIXED VERSION
+// Tujuan:
+// 1. Nama guru KONSISTEN (tidak hilang, tidak berubah)
+// 2. Tester mode STABIL
+// 3. Semua halaman pakai satu sumber data (single source of truth)
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  signInAnonymously,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
-  collection,
   doc,
   setDoc,
-  getDoc,
   runTransaction,
   serverTimestamp,
+  collection,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* =========================
+   FIREBASE INIT
+========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyAcXFgMa8H8eassILqMBsNZfPmicYiNJ40",
   authDomain: "sekolah-sdnwidarasari.firebaseapp.com",
@@ -22,97 +34,117 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-// Tambahkan kata 'export' di depan const
 export const db = getFirestore(app);
-export const auth = getAuth(app); // Opsional, jika butuh auth juga
+export const auth = getAuth(app);
 
-
+/* =========================
+   AUTH STATE
+========================= */
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    localStorage.setItem('userUid', user.uid);
+    localStorage.setItem("userUid", user.uid);
   }
 });
 
+/* =========================
+   LOGIN DENGAN NAMA (FIX)
+========================= */
 /**
- * @param {string} nama - Nama yang dipilih
- * @param {string} role - Role (admin/murid)
- * @param {boolean} isTester - Jika true, tidak akan mengunci nama di database
+ * @param {string} nama - Nama guru / murid (KHUSUS)
+ * @param {string} role - admin | guru | murid
+ * @param {boolean} isTester - mode tester
  */
-async function loginWithName(nama, role, isTester = false) {
+export async function loginWithName(nama, role, isTester = false) {
   try {
-    const userCredential = await signInAnonymously(auth);
-    const user = userCredential.user;
-    const uid = user.uid;
+    const credential = await signInAnonymously(auth);
+    const uid = credential.user.uid;
 
-    // HANYA kunci nama jika BUKAN akun tester
+    // 🔒 STANDARISASI NAMA (INI KUNCI SEMUA FILTER MAPEL)
+    const FIXED_NAME = nama.trim().toUpperCase();
+
+    // Kunci nama HANYA jika bukan tester
     if (!isTester) {
-      const nameRef = doc(db, 'names', nama);
+      const nameRef = doc(db, "names", FIXED_NAME);
 
       await runTransaction(db, async (tx) => {
         const snap = await tx.get(nameRef);
         const data = snap.exists() ? snap.data() : null;
-        
-        // Cek jika sudah diklaim orang lain
-        if (data && data.claimedBy && data.claimedBy !== uid) {
-          throw new Error('taken');
+
+        if (data?.claimedBy && data.claimedBy !== uid) {
+          throw new Error("Nama sudah digunakan");
         }
-        
-        tx.set(nameRef, { 
-          claimedBy: uid, 
-          role: role, 
-          claimedAt: serverTimestamp() 
-        }, { merge: true });
+
+        tx.set(
+          nameRef,
+          {
+            claimedBy: uid,
+            role,
+            claimedAt: serverTimestamp()
+          },
+          { merge: true }
+        );
       });
     }
 
-    // Simpan profil ke users (untuk data dashboard)
-    await setDoc(doc(db, 'users', uid), {
-      nama: nama,
-      role: role,
-      lastLogin: new Date().toISOString(),
-      nameKey: nama,
-      isTester: isTester
-    }, { merge: true });
+    // Simpan profil user (dashboard & audit)
+    await setDoc(
+      doc(db, "users", uid),
+      {
+        nama: FIXED_NAME,
+        role,
+        isTester,
+        lastLogin: new Date().toISOString()
+      },
+      { merge: true }
+    );
 
-    localStorage.setItem('userName', nama);
-    localStorage.setItem('userRole', role);
-    localStorage.setItem('userUid', uid);
-    localStorage.setItem('isTester', isTester);
+    // ✅ SINGLE SOURCE OF TRUTH (LOCAL)
+    localStorage.setItem("userName", FIXED_NAME);
+    localStorage.setItem("userRole", role);
+    localStorage.setItem("isTester", String(isTester));
+    localStorage.setItem("userUid", uid);
 
     return { success: true, uid };
-  } catch (error) {
-    console.error('Login Error:', error);
-    return { success: false, error: error.message };
+  } catch (err) {
+    console.error("Login error:", err);
+    return { success: false, error: err.message };
   }
 }
 
-function subscribeNames(onChange) {
-  const col = collection(db, 'names');
+/* =========================
+   CONTEXT HELPER (PENTING)
+========================= */
+export function getCurrentUserContext() {
+  return {
+    name: (localStorage.getItem("userName") || "").toUpperCase(),
+    role: localStorage.getItem("userRole"),
+    isTester: localStorage.getItem("isTester") === "true",
+    uid: localStorage.getItem("userUid")
+  };
+}
+
+/* =========================
+   SUBSCRIBE NAMES (OPTIONAL)
+========================= */
+export function subscribeNames(onChange) {
+  const col = collection(db, "names");
   return onSnapshot(col, (snap) => {
     const data = {};
-    snap.forEach(d => {
-        data[d.id] = d.data();
+    snap.forEach((d) => {
+      data[d.id] = d.data();
     });
     onChange(data);
   });
 }
 
-// Fungsi ini sengaja dikosongkan/dinonaktifkan untuk mendukung "Satu Login Permanen"
-async function releaseClaim(nameKey, uid) {
-  // Jika ingin benar-benar mengunci, jangan lakukan apa-apa di sini
-  console.log("Release claim dinonaktifkan untuk mode pengembangan satu-login.");
-}
-
-async function logout() {
-  // Kita tidak memanggil releaseClaim agar status di Firestore tetap 'claimed'
+/* =========================
+   LOGOUT (AMAN)
+========================= */
+export async function logout() {
   try {
     await signOut(auth);
   } finally {
     localStorage.clear();
-    window.location.href = 'index.html';
+    window.location.href = "index.html";
   }
 }
-
-export { auth, db, loginWithName, subscribeNames, releaseClaim, logout };
-
