@@ -133,8 +133,9 @@
             "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
         };
 
-        let currentAuthor = localStorage.getItem('userName') || 'GUEST';
-        let isTester = localStorage.getItem('isTester') === 'true';
+        import { getCurrentUserContext } from './app.js';
+
+const { name: currentAuthor, isTester } = getCurrentUserContext();
 
         // --- FUNGSI UI ---
         function updateAuthorUI(name) {
@@ -181,7 +182,12 @@
                 tSel.value = currentAuthor;
                 tSel.onchange = (e) => {
                     currentAuthor = e.target.value;
-                    updateAuthorUI(currentAuthor);
+sessionStorage.setItem('active_tester_name', currentAuthor);
+                    const savedTester = sessionStorage.getItem('active_tester_name');
+if (isTester && savedTester) {
+    currentAuthor = savedTester;
+}
+updateAuthorUI(currentAuthor);
                 };
             }
 
@@ -193,6 +199,13 @@
         document.getElementById('materi-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
+const mediaUrl = document.getElementById('media-url').value;
+if (!mediaUrl) {
+    alert("Wajib mengunggah media (gambar/video/file) sebelum publikasi!");
+    btn.disabled = false;
+    btn.innerText = "PUBLIKASIKAN";
+    return;
+}
             btn.disabled = true;
             btn.innerText = "SINKRONISASI...";
 
@@ -203,7 +216,8 @@
                     mapel: document.getElementById('mapel-select').value,
                     deskripsi: document.getElementById('deskripsi').value,
                     konten: document.getElementById('konten').value,
-                    media: document.getElementById('media-url').value,
+                    media: getOptimizedUrl(document.getElementById('media-url').value),
+
                     mediaType: document.getElementById('media-type').value,
                     author: currentAuthor,
                     createdAt: new Date().toISOString()
@@ -222,6 +236,7 @@
     </script>
 </body>
 </html>
+
 
 
 
