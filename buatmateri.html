@@ -112,6 +112,28 @@
                     </button>
                 </div>
             </form>
+<div class="mt-12 pt-10 border-t border-white/10">
+    <h2 class="text-xs font-black uppercase tracking-[0.3em] text-slate-500 mb-8 flex items-center gap-2">
+        <i data-lucide="eye" class="w-4 h-4"></i> Live Preview
+    </h2>
+    
+    <article class="space-y-8 max-w-2xl mx-auto opacity-60 hover:opacity-100 transition-opacity">
+        <header class="space-y-4">
+            <span id="preview-mapel-tag" class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20 tracking-widest">MAPEL</span>
+            <h2 id="preview-display-title" class="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-[0.9] text-white">JUDUL PRATINJAU</h2>
+        </header>
+
+        <div id="preview-display-media" class="w-full rounded-3xl overflow-hidden bg-white/5 border border-white/10 hidden">
+            </div>
+
+        <div class="glass p-8 rounded-[2rem] border-white/5 relative overflow-hidden">
+            <div id="preview-display-content" class="text-slate-200 whitespace-pre-wrap text-sm md:text-base leading-relaxed opacity-90">
+                Konten pratinjau akan muncul di sini...
+            </div>
+        </div>
+    </article>
+</div>
+
         </div>
     </div>
 
@@ -174,7 +196,42 @@ window.addEventListener('DOMContentLoaded', () => {
 
   updateAuthorUI();
   lucide.createIcons();
+
+// ===== LIVE PREVIEW LOGIC =====
+const inputs = ['judul', 'mapel-select', 'konten'];
+inputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
 });
+
+function updatePreview() {
+    // Sync Teks
+    document.getElementById('preview-display-title').innerText = document.getElementById('judul').value || "JUDUL PRATINJAU";
+    document.getElementById('preview-mapel-tag').innerText = document.getElementById('mapel-select').value || "MAPEL";
+    document.getElementById('preview-display-content').innerText = document.getElementById('konten').value || "Konten pratinjau akan muncul di sini...";
+    
+    // Sync Media (Gambar/Video)
+    const mediaUrl = document.getElementById('media-url').value;
+    const mediaType = document.getElementById('media-type').value;
+    const previewMediaBox = document.getElementById('preview-display-media');
+
+    if (mediaUrl) {
+        previewMediaBox.classList.remove('hidden');
+        if (mediaType === 'video') {
+            previewMediaBox.innerHTML = `<video src="${mediaUrl}" class="w-full aspect-video bg-black"></video>`;
+        } else {
+            previewMediaBox.innerHTML = `<img src="${mediaUrl}" class="w-full h-auto object-cover">`;
+        }
+    } else {
+        previewMediaBox.classList.add('hidden');
+    }
+}
+
+// Panggil updatePreview di dalam callback sukses Cloudinary Anda
+// Tambahkan baris ini di dalam (err, res) => { if (res.event === "success") { ... } }
+// updatePreview(); 
+
+});
+
 // ===============================
 // CLOUDINARY UPLOAD (BUAT MATERI)
 // ===============================
@@ -200,11 +257,14 @@ if (uploadBtn) {
         document.getElementById('media-type').value = res.info.resource_type;
         document.getElementById('preview-info').classList.remove('hidden');
         document.getElementById('upload-prompt').classList.add('hidden');
+updatePreview();
     }
 });
 
   });
 }
+
+
 // ===== SUBMIT =====
 document.getElementById('materi-form').onsubmit = async (e) => {
   e.preventDefault();
@@ -242,6 +302,7 @@ document.getElementById('materi-form').onsubmit = async (e) => {
 </script>
 </body>
 </html>
+
 
 
 
