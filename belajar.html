@@ -109,20 +109,23 @@
         let allMateri = [];
         let currentFilter = 'Semua';
 const saveLearningHistory = async (materi) => {
+    // 1. Ambil user yang sedang login dari Firebase Auth
+    const user = auth.currentUser; 
     const userRole = localStorage.getItem('userRole');
-    const uid = localStorage.getItem('userUid'); // Pastikan Anda menyimpan UID saat login
 
-    // Hanya simpan jika yang login adalah murid
-    if (userRole !== 'murid' || !uid) return;
+    // 2. Validasi: Hanya simpan jika user adalah murid dan sudah terautentikasi
+    if (!user || userRole !== 'murid') return;
 
     try {
-        await setDoc(doc(db, 'artifacts', appId, 'users', uid, 'history_belajar', materi.id), {
+        // Gunakan user.uid (bukan localStorage) agar sinkron dengan Security Rules
+        await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'history_belajar', materi.id), {
             judulMateri: materi.judul,
             mapel: materi.mapel,
             lastAccessed: new Date().toISOString(),
-            status: "SELESAI"
+            status: "SELESAI",
+            userName: localStorage.getItem('userName') // Opsional: simpan nama untuk mempermudah admin
         });
-        console.log("Riwayat belajar diperbarui");
+        console.log("Riwayat belajar berhasil dicatat untuk UID:", user.uid);
     } catch (error) {
         console.error("Gagal menyimpan riwayat:", error);
     }
