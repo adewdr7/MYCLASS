@@ -7,13 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Cloudinary SDK -->
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-    <script type="module" src="app.js"></script>
-    
-    <!-- Config File Rujukan -->
-    <script src="cloudinary-config.js"></script>
+    <!-- Cloudinary SDK (HARUS DULU) -->
+<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 
+<!-- Config Cloudinary (GLOBAL) -->
+<script src="cloudinary-config.js"></script>
+
+<!-- Baru script module -->
+<script type="module" src="app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
@@ -174,6 +175,38 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAuthorUI();
   lucide.createIcons();
 });
+// ===============================
+// CLOUDINARY UPLOAD (BUAT MATERI)
+// ===============================
+const uploadBtn = document.getElementById('btn-upload');
+
+if (uploadBtn) {
+  uploadBtn.addEventListener('click', () => {
+
+    if (!window.cloudinary || !window.CLOUDINARY_CONFIG) {
+      alert("Cloudinary belum siap. Periksa cloudinary-config.js");
+      return;
+    }
+
+    window.cloudinary.openUploadWidget({
+      cloudName: window.CLOUDINARY_CONFIG.cloudName,
+      uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
+      ...window.CLOUDINARY_CONFIG.uploadOptions
+    }, (err, res) => {
+
+      if (!err && res.event === "success") {
+        document.getElementById('media-url').value = res.info.secure_url;
+        document.getElementById('media-type').value = res.info.resource_type;
+
+        // UI feedback
+        document.getElementById('preview-info').classList.remove('hidden');
+        document.getElementById('upload-prompt').classList.add('hidden');
+      }
+
+    });
+
+  });
+}
 
 // ===== SUBMIT =====
 document.getElementById('materi-form').onsubmit = async (e) => {
@@ -188,7 +221,7 @@ document.getElementById('materi-form').onsubmit = async (e) => {
       mapel: document.getElementById('mapel-select').value,
       deskripsi: deskripsi.value,
       konten: konten.value,
-      media: document.getElementById('media-url').value,
+      media: window.getOptimizedUrl(document.getElementById('media-url').value),
       mediaType: document.getElementById('media-type').value,
       author: currentAuthor,
       createdAt: new Date().toISOString()
