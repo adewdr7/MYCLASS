@@ -179,8 +179,9 @@
         "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
     };
 
-    let currentAuthor = localStorage.getItem('userName') || "Unknown Educator";
-    let isTester = localStorage.getItem('isTester') === 'true';
+    import { getCurrentUserContext } from './app.js';
+
+const { name: currentAuthor, isTester } = getCurrentUserContext();
     const appId = 'sekolah-sdnwidarasari'; 
 
     function updateMapelFilter(name) {
@@ -205,10 +206,16 @@
                 tSel.value = currentAuthor;
                 tSel.onchange = (e) => {
                     currentAuthor = e.target.value;
-                    updateMapelFilter(currentAuthor);
+sessionStorage.setItem('active_tester_name', currentAuthor);
+                    const savedTester = sessionStorage.getItem('active_tester_name');
+if (isTester && savedTester) {
+    currentAuthor = savedTester;
+}
+updateAuthorUI(currentAuthor);
                 };
             }
         }
+currentAuthor = (currentAuthor || '').toUpperCase();
         updateMapelFilter(currentAuthor);
         lucide.createIcons();
     });
@@ -274,6 +281,7 @@
 </script>
 </body>
 </html>
+
 
 
 
