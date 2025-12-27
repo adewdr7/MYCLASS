@@ -236,13 +236,21 @@ if (window.cloudinary && window.CLOUDINARY_CONFIG) {
     ...window.CLOUDINARY_CONFIG.uploadOptions
   }, (error, result) => {
 
-    if (!error && result.event === "success") {
-      document.getElementById('media-url').value = result.info.secure_url;
-      document.getElementById('media-type').value = result.info.resource_type;
+    // Temukan bagian result.event === "success" di dalam myWidget
+if (!error && result.event === "success") {
+  document.getElementById('media-url').value = result.info.secure_url;
+  document.getElementById('media-type').value = result.info.resource_type;
 
-      document.getElementById('media-preview').classList.remove('hidden');
-      document.getElementById('upload-placeholder').classList.add('hidden');
-    }
+  // Tambahkan baris ini untuk menampilkan nama file/status
+  document.getElementById('media-preview').classList.remove('hidden');
+  document.getElementById('preview-content').innerHTML = `
+    <div class="p-4 bg-purple-500/20 rounded-xl border border-purple-500/30 text-xs">
+        File Terpasang: ${result.info.original_filename}.${result.info.format}
+    </div>
+  `;
+  document.getElementById('upload-placeholder').classList.add('hidden');
+}
+
 
   });
 }
