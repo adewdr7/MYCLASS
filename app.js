@@ -22,8 +22,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+
+// Tambahkan kata 'export' di depan const
+export const db = getFirestore(app);
+export const auth = getAuth(app); // Opsional, jika butuh auth juga
+
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -112,3 +115,4 @@ async function logout() {
 }
 
 export { auth, db, loginWithName, subscribeNames, releaseClaim, logout };
+
