@@ -36,6 +36,22 @@
                 Tester Mode
             </div>
         </div>
+<div id="tester-panel" class="mb-6 hidden">
+    <div class="glass border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-500 text-[10px] font-black px-2 py-1 rounded-md text-white uppercase">Tester Mode</div>
+            <p class="text-sm text-slate-300 italic">Ganti identitas guru:</p>
+        </div>
+        <select id="tester-identity-select" class="p-2 rounded-lg text-sm glass cursor-pointer border-amber-500/50 min-w-[200px]">
+            <option value="">Pilih Guru...</option>
+            <option value="IBU YAYAH">Ibu Yayah (Wali Kelas)</option>
+            <option value="BPK JAJANG">Bapak Jajang (PJOK)</option>
+            <option value="IBU ILAH">Ibu Ilah (B. Inggris)</option>
+            <option value="IBU LINA">Ibu Lina (PAI)</option>
+            <option value="DEV_ADMIN">Developer Admin</option>
+        </select>
+    </div>
+</div>
 
         <!-- Header -->
         <div class="mb-10">
@@ -61,14 +77,8 @@
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Mata Pelajaran</label>
                         <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none" required>
-                            <option value="" disabled selected>Pilih Mapel</option>
-                            <option value="Matematika">Matematika</option>
-                            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                            <option value="Sains">Sains</option>
-                            <option value="Sejarah">Sejarah</option>
-                            <option value="Bahasa Inggris">Bahasa Inggris</option>
-                            <option value="Lainnya">Lainnya</option>
-                        </select>
+    <option value="" disabled selected>Memuat Mapel...</option>
+</select>
                     </div>
                 </div>
 
@@ -154,130 +164,139 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // --- LOAD CONFIG ---
-        const fbConfig = JSON.parse(localStorage.getItem('firebaseConfig'));
-        const app = initializeApp(fbConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = 'stellar-academy';
+// --- CONFIG & INIT ---
+const fbConfig = JSON.parse(localStorage.getItem('firebaseConfig'));
+const app = initializeApp(fbConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const appId = 'stellar-academy';
 
-        // --- SYSTEM CHECK ---
-        const currentAuthor = localStorage.getItem('userName') || "Unknown Educator";
-        const isTester = localStorage.getItem('isTester') === 'true';
+// --- DATA FILTER (Sesuai buatmateri.html) ---
+const MAPEL_RULES = {
+    "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
+    "BPK JAJANG": ["PJOK"],
+    "IBU ILAH": ["Bahasa Inggris"],
+    "IBU LINA": ["Agama Islam"],
+    "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
+};
+
+let currentAuthor = localStorage.getItem('userName') || "Unknown Educator";
+let isTester = localStorage.getItem('isTester') === 'true';
+
+// --- FUNGSI UI FILTER ---
+function updateMapelFilter(name) {
+    document.getElementById('display-author').innerText = name;
+    const select = document.getElementById('mapel-select');
+    select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
+    
+    const list = MAPEL_RULES[name] || ["Materi Umum"];
+    list.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.innerText = m;
+        select.appendChild(opt);
+    });
+}
+
+// --- INITIAL LOAD ---
+window.addEventListener('DOMContentLoaded', () => {
+    if (isTester) {
+        document.getElementById('tester-panel').classList.remove('hidden');
+        const tSel = document.getElementById('tester-identity-select');
+        tSel.value = currentAuthor;
+        tSel.onchange = (e) => {
+            currentAuthor = e.target.value;
+            updateMapelFilter(currentAuthor);
+        };
+    }
+    updateMapelFilter(currentAuthor);
+    lucide.createIcons();
+});
+
+signInAnonymously(auth).catch(err => console.error("Firebase Auth Fail:", err));
+
+// --- CLOUDINARY WIDGET (Perbaikan Trigger) ---
+const myWidget = cloudinary.createUploadWidget({
+    cloudName: 'dlsntvbsj',
+    uploadPreset: 'ml_default',
+    sources: ['local', 'url', 'camera'],
+    multiple: false,
+    clientAllowedFormats: ["png","jpg","jpeg","mp4","pdf"],
+    maxFileSize: 10000000,
+}, (error, result) => {
+    if (!error && result && result.event === "success") {
+        const url = result.info.secure_url;
+        const resourceType = result.info.resource_type; 
         
-        document.getElementById('display-author').innerText = currentAuthor;
-        if (isTester) {
-            document.getElementById('tester-badge').classList.remove('hidden');
-            document.getElementById('tester-badge').classList.add('flex');
+        document.getElementById('media-url').value = url;
+        document.getElementById('media-type').value = resourceType;
+        
+        const previewContainer = document.getElementById('preview-content');
+        previewContainer.innerHTML = `<div id="type-indicator" class="absolute -top-3 -right-3 bg-purple-600 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg">${resourceType}</div>`;
+
+        if (resourceType === 'image') {
+            previewContainer.innerHTML += `<img src="${url}" class="max-h-64 rounded-3xl shadow-2xl border border-white/10 mx-auto">`;
+        } else if (resourceType === 'video') {
+            previewContainer.innerHTML += `<video src="${url}" class="max-h-64 rounded-3xl shadow-2xl mx-auto" controls></video>`;
+        } else {
+            previewContainer.innerHTML += `<div class="p-10 bg-white/10 rounded-3xl flex flex-col items-center"><i data-lucide="file-text" class="w-12 h-12 text-purple-400 mb-2"></i><span class="text-xs font-bold">PDF READY</span></div>`;
+            lucide.createIcons();
         }
 
-        signInAnonymously(auth).catch(err => console.error("Firebase Auth Fail:", err));
+        document.getElementById('media-preview').classList.remove('hidden');
+        document.getElementById('upload-placeholder').classList.add('hidden');
+        document.getElementById('upload-trigger').classList.add('upload-active');
+    }
+});
 
-        // --- CLOUDINARY WIDGET FIX ---
-        // Kita menggunakan cloudName yang sama dengan buatmateri.html (dlsntvbsj)
-        const myWidget = cloudinary.createUploadWidget({
-            cloudName: 'dlsntvbsj',
-            uploadPreset: 'ml_default',
-            sources: ['local', 'url', 'camera'],
-            multiple: false,
-            clientAllowedFormats: ["png","jpg","jpeg","mp4","pdf"],
-            maxFileSize: 10000000,
-        }, (error, result) => {
-            if (!error && result && result.event === "success") {
-                const url = result.info.secure_url;
-                const resourceType = result.info.resource_type; // image/video
-                
-                document.getElementById('media-url').value = url;
-                document.getElementById('media-type').value = resourceType;
-                
-                const previewContainer = document.getElementById('preview-content');
-                const indicator = document.getElementById('type-indicator');
-                
-                // Clear and Re-inject
-                previewContainer.innerHTML = '';
-                previewContainer.appendChild(indicator);
-                indicator.innerText = resourceType;
+// Pastikan event listener terpasang dengan benar
+document.getElementById('upload-trigger').addEventListener('click', (e) => {
+    e.preventDefault();
+    myWidget.open();
+});
 
-                if (resourceType === 'image') {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.className = "max-h-64 rounded-3xl shadow-2xl border border-white/10 mx-auto";
-                    previewContainer.appendChild(img);
-                } else if (resourceType === 'video') {
-                    const vid = document.createElement('video');
-                    vid.src = url;
-                    vid.className = "max-h-64 rounded-3xl shadow-2xl mx-auto";
-                    vid.controls = true;
-                    previewContainer.appendChild(vid);
-                } else {
-                    const pdfIcon = document.createElement('div');
-                    pdfIcon.className = "p-10 bg-white/10 rounded-3xl flex flex-col items-center";
-                    pdfIcon.innerHTML = `<i data-lucide="file-text" class="w-12 h-12 text-purple-400 mb-2"></i><span class="text-xs font-bold">PDF FILE READY</span>`;
-                    previewContainer.appendChild(pdfIcon);
-                    lucide.createIcons();
-                }
+// --- FORM SUBMIT ---
+document.getElementById('story-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> MEMANCARKAN...`;
+    lucide.createIcons();
 
-                document.getElementById('media-preview').classList.remove('hidden');
-                document.getElementById('upload-placeholder').classList.add('hidden');
-                document.getElementById('upload-trigger').classList.add('upload-active');
-            }
-        });
+    const storyData = {
+        tipe: "storytelling",
+        judul: document.getElementById('judul').value,
+        mapel: document.getElementById('mapel-select').value,
+        karakter: document.getElementById('karakter').value,
+        setting: document.getElementById('setting').value,
+        narasi: document.getElementById('narasi').value,
+        moral: document.getElementById('moral').value,
+        media: document.getElementById('media-url').value,
+        mediaType: document.getElementById('media-type').value,
+        author: currentAuthor,
+        isTester: isTester,
+        createdAt: new Date().toISOString()
+    };
 
-        document.getElementById('upload-trigger').onclick = (e) => {
-            e.preventDefault();
-            myWidget.open();
-        };
-
-        // --- FORM SUBMIT ---
-        document.getElementById('story-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> MEMANCARKAN...`;
-            lucide.createIcons();
-
-            const storyData = {
-                tipe: "storytelling",
-                judul: document.getElementById('judul').value,
-                mapel: document.getElementById('mapel-select').value,
-                karakter: document.getElementById('karakter').value,
-                setting: document.getElementById('setting').value,
-                narasi: document.getElementById('narasi').value,
-                moral: document.getElementById('moral').value,
-                media: document.getElementById('media-url').value,
-                mediaType: document.getElementById('media-type').value,
-                author: currentAuthor,
-                isTester: isTester,
-                createdAt: new Date().toISOString()
-            };
-
-            try {
-                // Rule path: /artifacts/{appId}/public/data/materi
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), storyData);
-
-                document.getElementById('toast').classList.remove('hidden');
-                document.getElementById('toast').classList.add('flex');
-                
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 2000);
-            } catch (err) {
-                console.error("Save Error:", err);
-                btn.disabled = false;
-                btn.innerText = "PUBLISH CERITA";
-                alert("Gangguan Transmisi: Gagal menyimpan data.");
-                lucide.createIcons();
-            }
-        };
-
-        // Init Icons
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), storyData);
+        document.getElementById('toast').classList.remove('hidden');
+        document.getElementById('toast').classList.add('flex');
+        setTimeout(() => window.location.href = 'dashboard.html', 2000);
+    } catch (err) {
+        console.error("Save Error:", err);
+        btn.disabled = false;
+        btn.innerText = "PUBLISH CERITA";
+        alert("Gagal menyimpan data.");
         lucide.createIcons();
-    </script>
+    }
+};
+</script>
 </body>
 </html>
+
 
 
