@@ -163,19 +163,12 @@
         <p class="font-bold text-sm uppercase tracking-tight">Transmisi Cerita Berhasil!</p>
     </div>
 
-    <script type="module">
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-// --- CONFIG & INIT ---
-const fbConfig = JSON.parse(localStorage.getItem('firebaseConfig'));
-const app = initializeApp(fbConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const appId = 'stellar-academy';
-
-// --- DATA FILTER (Sesuai buatmateri.html) ---
+// --- DATA FILTER (MAPEL RULES) ---
 const MAPEL_RULES = {
     "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
     "BPK JAJANG": ["PJOK"],
@@ -186,41 +179,71 @@ const MAPEL_RULES = {
 
 let currentAuthor = localStorage.getItem('userName') || "Unknown Educator";
 let isTester = localStorage.getItem('isTester') === 'true';
+const appId = 'sekolah-sdnwidarasari'; // Sesuaikan dengan buatmateri.html
 
 // --- FUNGSI UI FILTER ---
 function updateMapelFilter(name) {
-    document.getElementById('display-author').innerText = name;
+    const authorDisplay = document.getElementById('display-author');
     const select = document.getElementById('mapel-select');
-    select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
     
-    const list = MAPEL_RULES[name] || ["Materi Umum"];
-    list.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m; opt.innerText = m;
-        select.appendChild(opt);
-    });
+    if(authorDisplay) authorDisplay.innerText = name;
+    
+    if(select) {
+        select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
+        const list = MAPEL_RULES[name] || ["Materi Umum"];
+        list.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m; 
+            opt.innerText = m;
+            select.appendChild(opt);
+        });
+    }
 }
 
-// --- INITIAL LOAD ---
+// --- INITIAL LOAD (Dijalankan Segera) ---
 window.addEventListener('DOMContentLoaded', () => {
+    // 1. Munculkan Panel Tester jika isTester true
     if (isTester) {
-        document.getElementById('tester-panel').classList.remove('hidden');
+        const panel = document.getElementById('tester-panel');
+        const badge = document.getElementById('tester-badge');
+        if(panel) panel.classList.remove('hidden');
+        if(badge) badge.classList.remove('hidden');
+
         const tSel = document.getElementById('tester-identity-select');
-        tSel.value = currentAuthor;
-        tSel.onchange = (e) => {
-            currentAuthor = e.target.value;
-            updateMapelFilter(currentAuthor);
-        };
+        if(tSel) {
+            tSel.value = currentAuthor;
+            tSel.onchange = (e) => {
+                currentAuthor = e.target.value;
+                updateMapelFilter(currentAuthor);
+            };
+        }
     }
+    
+    // 2. Jalankan filter pertama kali
     updateMapelFilter(currentAuthor);
     lucide.createIcons();
 });
 
-signInAnonymously(auth).catch(err => console.error("Firebase Auth Fail:", err));
+// --- FIREBASE INIT (Dengan Proteksi Error) ---
+let db;
+try {
+    const configRaw = localStorage.getItem('firebaseConfig');
+    if (configRaw) {
+        const fbConfig = JSON.parse(configRaw);
+        const app = initializeApp(fbConfig);
+        db = getFirestore(app);
+        const auth = getAuth(app);
+        signInAnonymously(auth).catch(err => console.error("Firebase Auth Fail:", err));
+    } else {
+        console.warn("Firebase Config tidak ditemukan di localStorage.");
+    }
+} catch (e) {
+    console.error("Gagal inisialisasi Firebase:", e);
+}
 
-// --- CLOUDINARY WIDGET (Perbaikan Trigger) ---
+// --- CLOUDINARY WIDGET ---
 const myWidget = cloudinary.createUploadWidget({
-    cloudName: 'dlsntvbsj',
+    cloudName: 'dlsntvbsj', // Pastikan cloudName ini benar
     uploadPreset: 'ml_default',
     sources: ['local', 'url', 'camera'],
     multiple: false,
@@ -242,17 +265,16 @@ const myWidget = cloudinary.createUploadWidget({
         } else if (resourceType === 'video') {
             previewContainer.innerHTML += `<video src="${url}" class="max-h-64 rounded-3xl shadow-2xl mx-auto" controls></video>`;
         } else {
-            previewContainer.innerHTML += `<div class="p-10 bg-white/10 rounded-3xl flex flex-col items-center"><i data-lucide="file-text" class="w-12 h-12 text-purple-400 mb-2"></i><span class="text-xs font-bold">PDF READY</span></div>`;
-            lucide.createIcons();
+            previewContainer.innerHTML += `<div class="p-10 bg-white/10 rounded-3xl flex flex-col items-center"><i data-lucide="file-text" class="w-12 h-12 text-purple-400 mb-2"></i><span class="text-xs font-bold">FILE READY</span></div>`;
         }
-
+        
         document.getElementById('media-preview').classList.remove('hidden');
         document.getElementById('upload-placeholder').classList.add('hidden');
         document.getElementById('upload-trigger').classList.add('upload-active');
+        lucide.createIcons();
     }
 });
 
-// Pastikan event listener terpasang dengan benar
 document.getElementById('upload-trigger').addEventListener('click', (e) => {
     e.preventDefault();
     myWidget.open();
@@ -261,6 +283,11 @@ document.getElementById('upload-trigger').addEventListener('click', (e) => {
 // --- FORM SUBMIT ---
 document.getElementById('story-form').onsubmit = async (e) => {
     e.preventDefault();
+    if (!db) {
+        alert("Sistem database belum siap. Cek koneksi/konfigurasi.");
+        return;
+    }
+
     const btn = document.getElementById('btn-submit');
     btn.disabled = true;
     btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> MEMANCARKAN...`;
@@ -277,7 +304,6 @@ document.getElementById('story-form').onsubmit = async (e) => {
         media: document.getElementById('media-url').value,
         mediaType: document.getElementById('media-type').value,
         author: currentAuthor,
-        isTester: isTester,
         createdAt: new Date().toISOString()
     };
 
@@ -290,7 +316,7 @@ document.getElementById('story-form').onsubmit = async (e) => {
         console.error("Save Error:", err);
         btn.disabled = false;
         btn.innerText = "PUBLISH CERITA";
-        alert("Gagal menyimpan data.");
+        alert("Gagal menyimpan: " + err.message);
         lucide.createIcons();
     }
 };
