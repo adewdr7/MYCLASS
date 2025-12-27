@@ -143,7 +143,7 @@
 
     <!-- Firebase Integration -->
     <script type="module">
-        import { db, getCurrentUserContext } from './app.js';
+        import { db, auth, getCurrentUserContext } from './app.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { 
             collection, 
@@ -162,63 +162,89 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
         let activeData = [];
 
         function init() {
-    // Gunakan onAuthStateChanged untuk memastikan kita mendapat UID yang valid
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            const { name, role } = getCurrentUserContext();
-            
-            // Update UI Header
-            document.getElementById('user-fullname').innerText = name;
-            document.getElementById('user-uid-display').innerText = `ID: ${user.uid}`;
-            document.getElementById('avatar-img').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // Tidak ada auth → balik ke login
+      window.location.href = 'index.html';
+      return;
+    }
 
-            if (role === 'admin') {
-                setupAdminView();
-            } else {
-                // Berikan user.uid ke fungsi view murid
-                setupMuridView(user.uid);
-            }
-        } else {
-            // Jika tidak ada user login, tendang ke login page
-            window.location.href = 'index.html';
-        }
-    });
+    const { name, role, isTester } = getCurrentUserContext();
 
-            // Tester Toggle
-            document.getElementById('btn-switch-role').onclick = () => {
-                const newRole = role === 'admin' ? 'murid' : 'admin';
-                const newName = newRole === 'admin' ? 'DEV_ADMIN' : 'DEV_MURID';
-                localStorage.setItem('userRole', newRole);
-                localStorage.setItem('userName', newName);
-                window.location.reload();
-            };
+    // Header UI
+    document.getElementById('user-fullname').innerText = name;
+    document.getElementById('user-uid-display').innerText = `ID: ${user.uid}`;
+    document.getElementById(
+      'avatar-img'
+    ).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
 
-            lucide.createIcons();
-        }
+    // Pilih view
+    if (role === 'admin') {
+      setupAdminView();
+    } else {
+      setupMuridView(user.uid);
+    }
+
+    // ✅ TESTER MODE SWITCH (AMAN)
+    document.getElementById('btn-switch-role').onclick = () => {
+      if (!isTester) {
+        alert('Switch role hanya tersedia di tester mode');
+        return;
+      }
+
+      const newRole = role === 'admin' ? 'murid' : 'admin';
+      const newName = newRole === 'admin' ? 'DEV_ADMIN' : 'DEV_MURID';
+
+      localStorage.setItem('userRole', newRole);
+      localStorage.setItem('userName', newName);
+
+      window.location.reload();
+    };
+
+    lucide.createIcons();
+  });
+}
 
 // Sesuaikan fungsi setupMuridView untuk menerima parameter UID
 function setupMuridView(currentUid) {
-    const roleLabel = document.getElementById('role-label');
-    roleLabel.innerText = 'Siswa Academy';
-    roleLabel.className = 'inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
+  const roleLabel = document.getElementById('role-label');
+  roleLabel.innerText = 'Siswa Academy';
+  roleLabel.className =
+    'inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
 
-    document.getElementById('history-desc').innerText = 'Materi yang telah Anda selesaikan atau sedang dipelajari.';
+  document.getElementById('history-desc').innerText =
+    'Materi yang telah Anda selesaikan atau sedang dipelajari.';
 
-    // Gunakan currentUid yang dikirim dari init()
-    const q = query(
-        collection(db, 'artifacts', appId, 'users', currentUid, 'history_belajar'),
-        orderBy("lastAccessed", "desc")
-    );
+  const q = query(
+    collection(
+      db,
+      'artifacts',
+      appId,
+      'users',
+      currentUid,
+      'history_belajar'
+    ),
+    orderBy('lastAccessed', 'desc')
+  );
 
-    onSnapshot(q, (snapshot) => {
-        const history = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderMuridList(history);
-    }, (err) => {
-        console.error("Gagal memuat riwayat:", err);
-        document.getElementById('history-list').innerHTML = `<div class="py-10 text-center opacity-30 text-sm italic">Belum ada riwayat belajar.</div>`;
-    });
+  onSnapshot(
+    q,
+    (snapshot) => {
+      const history = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data()
+      }));
+      renderMuridList(history);
+    },
+    (err) => {
+      console.error('Gagal memuat riwayat:', err);
+      document.getElementById('history-list').innerHTML =
+        `<div class="py-10 text-center opacity-30 text-sm italic">
+          Belum ada riwayat belajar.
+        </div>`;
+    }
+  );
 }
-
         // --- GURU / ADMIN VIEW ---
         function setupAdminView() {
             const roleLabel = document.getElementById('role-label');
@@ -269,29 +295,6 @@ function setupMuridView(currentUid) {
                 </div>
             `).join('');
             lucide.createIcons();
-        }
-
-        // --- MURID VIEW ---
-        function setupMuridView() {
-            const roleLabel = document.getElementById('role-label');
-            roleLabel.innerText = 'Siswa Academy';
-            roleLabel.className += ' bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
-
-            document.getElementById('history-desc').innerText = 'Materi yang telah Anda selesaikan atau sedang dipelajari.';
-
-            // Query Riwayat Belajar Murid
-            const q = query(
-                collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
-                orderBy("lastAccessed", "desc")
-            );
-
-            onSnapshot(q, (snapshot) => {
-                const history = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderMuridList(history);
-            }, (err) => {
-                // Fallback jika belum ada data/index belum siap
-                document.getElementById('history-list').innerHTML = `<div class="py-10 text-center opacity-30 text-sm italic">Belum ada riwayat belajar.</div>`;
-            });
         }
 
         function renderMuridList(data) {
@@ -368,6 +371,7 @@ function setupMuridView(currentUid) {
     </script>
 </body>
 </html>
+
 
 
 
