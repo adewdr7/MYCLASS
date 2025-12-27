@@ -9,7 +9,9 @@
     
     <!-- Cloudinary SDK -->
     <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-    
+
+<script src="cloudinary-config.js"></script>
+<script type="module" src="app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
@@ -164,162 +166,111 @@
     </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    // Ambil db dari app.js (Pastikan jalur file benar)
+    import { db } from "./app.js"; 
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- DATA FILTER (MAPEL RULES) ---
-const MAPEL_RULES = {
-    "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
-    "BPK JAJANG": ["PJOK"],
-    "IBU ILAH": ["Bahasa Inggris"],
-    "IBU LINA": ["Agama Islam"],
-    "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
-};
-
-let currentAuthor = localStorage.getItem('userName') || "Unknown Educator";
-let isTester = localStorage.getItem('isTester') === 'true';
-const appId = 'sekolah-sdnwidarasari'; // Sesuaikan dengan buatmateri.html
-
-// --- FUNGSI UI FILTER ---
-function updateMapelFilter(name) {
-    const authorDisplay = document.getElementById('display-author');
-    const select = document.getElementById('mapel-select');
-    
-    if(authorDisplay) authorDisplay.innerText = name;
-    
-    if(select) {
-        select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
-        const list = MAPEL_RULES[name] || ["Materi Umum"];
-        list.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m; 
-            opt.innerText = m;
-            select.appendChild(opt);
-        });
-    }
-}
-
-// --- INITIAL LOAD (Dijalankan Segera) ---
-window.addEventListener('DOMContentLoaded', () => {
-    // 1. Munculkan Panel Tester jika isTester true
-    if (isTester) {
-        const panel = document.getElementById('tester-panel');
-        const badge = document.getElementById('tester-badge');
-        if(panel) panel.classList.remove('hidden');
-        if(badge) badge.classList.remove('hidden');
-
-        const tSel = document.getElementById('tester-identity-select');
-        if(tSel) {
-            tSel.value = currentAuthor;
-            tSel.onchange = (e) => {
-                currentAuthor = e.target.value;
-                updateMapelFilter(currentAuthor);
-            };
-        }
-    }
-    
-    // 2. Jalankan filter pertama kali
-    updateMapelFilter(currentAuthor);
-    lucide.createIcons();
-});
-
-// --- FIREBASE INIT (Dengan Proteksi Error) ---
-let db;
-try {
-    const configRaw = localStorage.getItem('firebaseConfig');
-    if (configRaw) {
-        const fbConfig = JSON.parse(configRaw);
-        const app = initializeApp(fbConfig);
-        db = getFirestore(app);
-        const auth = getAuth(app);
-        signInAnonymously(auth).catch(err => console.error("Firebase Auth Fail:", err));
-    } else {
-        console.warn("Firebase Config tidak ditemukan di localStorage.");
-    }
-} catch (e) {
-    console.error("Gagal inisialisasi Firebase:", e);
-}
-
-// --- CLOUDINARY WIDGET ---
-const myWidget = cloudinary.createUploadWidget({
-    cloudName: 'dlsntvbsj', // Pastikan cloudName ini benar
-    uploadPreset: 'ml_default',
-    sources: ['local', 'url', 'camera'],
-    multiple: false,
-    clientAllowedFormats: ["png","jpg","jpeg","mp4","pdf"],
-    maxFileSize: 10000000,
-}, (error, result) => {
-    if (!error && result && result.event === "success") {
-        const url = result.info.secure_url;
-        const resourceType = result.info.resource_type; 
-        
-        document.getElementById('media-url').value = url;
-        document.getElementById('media-type').value = resourceType;
-        
-        const previewContainer = document.getElementById('preview-content');
-        previewContainer.innerHTML = `<div id="type-indicator" class="absolute -top-3 -right-3 bg-purple-600 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg">${resourceType}</div>`;
-
-        if (resourceType === 'image') {
-            previewContainer.innerHTML += `<img src="${url}" class="max-h-64 rounded-3xl shadow-2xl border border-white/10 mx-auto">`;
-        } else if (resourceType === 'video') {
-            previewContainer.innerHTML += `<video src="${url}" class="max-h-64 rounded-3xl shadow-2xl mx-auto" controls></video>`;
-        } else {
-            previewContainer.innerHTML += `<div class="p-10 bg-white/10 rounded-3xl flex flex-col items-center"><i data-lucide="file-text" class="w-12 h-12 text-purple-400 mb-2"></i><span class="text-xs font-bold">FILE READY</span></div>`;
-        }
-        
-        document.getElementById('media-preview').classList.remove('hidden');
-        document.getElementById('upload-placeholder').classList.add('hidden');
-        document.getElementById('upload-trigger').classList.add('upload-active');
-        lucide.createIcons();
-    }
-});
-
-document.getElementById('upload-trigger').addEventListener('click', (e) => {
-    e.preventDefault();
-    myWidget.open();
-});
-
-// --- FORM SUBMIT ---
-document.getElementById('story-form').onsubmit = async (e) => {
-    e.preventDefault();
-    if (!db) {
-        alert("Sistem database belum siap. Cek koneksi/konfigurasi.");
-        return;
-    }
-
-    const btn = document.getElementById('btn-submit');
-    btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> MEMANCARKAN...`;
-    lucide.createIcons();
-
-    const storyData = {
-        tipe: "storytelling",
-        judul: document.getElementById('judul').value,
-        mapel: document.getElementById('mapel-select').value,
-        karakter: document.getElementById('karakter').value,
-        setting: document.getElementById('setting').value,
-        narasi: document.getElementById('narasi').value,
-        moral: document.getElementById('moral').value,
-        media: document.getElementById('media-url').value,
-        mediaType: document.getElementById('media-type').value,
-        author: currentAuthor,
-        createdAt: new Date().toISOString()
+    // --- DATA FILTER (MAPEL RULES) ---
+    const MAPEL_RULES = {
+        "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
+        "BPK JAJANG": ["PJOK"],
+        "IBU ILAH": ["Bahasa Inggris"],
+        "IBU LINA": ["Agama Islam"],
+        "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
     };
 
-    try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), storyData);
-        document.getElementById('toast').classList.remove('hidden');
-        document.getElementById('toast').classList.add('flex');
-        setTimeout(() => window.location.href = 'dashboard.html', 2000);
-    } catch (err) {
-        console.error("Save Error:", err);
-        btn.disabled = false;
-        btn.innerText = "PUBLISH CERITA";
-        alert("Gagal menyimpan: " + err.message);
-        lucide.createIcons();
+    let currentAuthor = localStorage.getItem('userName') || "Unknown Educator";
+    let isTester = localStorage.getItem('isTester') === 'true';
+    const appId = 'sekolah-sdnwidarasari'; 
+
+    function updateMapelFilter(name) {
+        const select = document.getElementById('mapel-select');
+        if(select) {
+            select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
+            const list = MAPEL_RULES[name] || ["Materi Umum"];
+            list.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m; opt.innerText = m;
+                select.appendChild(opt);
+            });
+        }
     }
-};
+
+    // --- INITIAL LOAD ---
+    window.addEventListener('DOMContentLoaded', () => {
+        if (isTester) {
+            document.getElementById('tester-panel')?.classList.remove('hidden');
+            const tSel = document.getElementById('tester-identity-select');
+            if(tSel) {
+                tSel.value = currentAuthor;
+                tSel.onchange = (e) => {
+                    currentAuthor = e.target.value;
+                    updateMapelFilter(currentAuthor);
+                };
+            }
+        }
+        updateMapelFilter(currentAuthor);
+        lucide.createIcons();
+    });
+
+    // --- CLOUDINARY WIDGET (Merujuk ke CLOUDINARY_CONFIG) ---
+    const myWidget = cloudinary.createUploadWidget({
+        cloudName: CLOUDINARY_CONFIG.cloudName,
+        uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
+        ...CLOUDINARY_CONFIG.uploadOptions
+    }, (error, result) => {
+        if (!error && result && result.event === "success") {
+            const url = result.info.secure_url;
+            const resourceType = result.info.resource_type; 
+            document.getElementById('media-url').value = url;
+            document.getElementById('media-type').value = resourceType;
+            
+            const previewContainer = document.getElementById('preview-content');
+            previewContainer.innerHTML = `<div class="absolute -top-3 -right-3 bg-purple-600 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg">${resourceType}</div>`;
+            
+            if (resourceType === 'image') previewContainer.innerHTML += `<img src="${url}" class="max-h-64 rounded-3xl mx-auto">`;
+            else if (resourceType === 'video') previewContainer.innerHTML += `<video src="${url}" class="max-h-64 rounded-3xl mx-auto" controls></video>`;
+            
+            document.getElementById('media-preview').classList.remove('hidden');
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            lucide.createIcons();
+        }
+    });
+
+    document.getElementById('upload-trigger').onclick = (e) => { e.preventDefault(); myWidget.open(); };
+
+    // --- SUBMIT ---
+    document.getElementById('story-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+        btn.innerHTML = "MEMANCARKAN...";
+
+        const storyData = {
+            tipe: "storytelling",
+            judul: document.getElementById('judul').value,
+            mapel: document.getElementById('mapel-select').value,
+            karakter: document.getElementById('karakter').value,
+            setting: document.getElementById('setting').value,
+            narasi: document.getElementById('narasi').value,
+            moral: document.getElementById('moral').value,
+            media: document.getElementById('media-url').value,
+            mediaType: document.getElementById('media-type').value,
+            author: currentAuthor,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), storyData);
+            document.getElementById('toast').classList.remove('hidden');
+            setTimeout(() => window.location.href = 'dashboard.html', 2000);
+        } catch (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerText = "PUBLISH CERITA";
+            alert("Gagal simpan ke database.");
+        }
+    };
 </script>
 </body>
 </html>
