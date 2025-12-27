@@ -82,11 +82,12 @@
                 <!-- Media Injected Here -->
             </div>
 
-            <div class="glass p-8 md:p-14 rounded-[3rem] border-white/5 relative overflow-hidden">
+          <div class="glass p-5 md:p-12 rounded-2xl md:rounded-[3rem] border-white/5 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
                     <i data-lucide="quote" class="w-20 h-20 text-white"></i>
                 </div>
-                <div id="read-content" class="text-slate-200 leading-[1.8] whitespace-pre-wrap text-lg md:text-xl font-medium opacity-90 relative z-10">
+                <div id="read-content"
+     class="text-slate-200 whitespace-pre-wrap text-[15px] md:text-lg leading-relaxed md:leading-[1.8] font-medium opacity-90 relative z-10">
                     <!-- Konten Materi -->
                 </div>
             </div>
@@ -170,34 +171,46 @@
     // --- LOGIKA ADAPTIF ---
     if (item.tipe === 'storytelling') {
         // TAMPILAN KHUSUS STORYTELLING (Data dari buatmateri-story.html)
-        contentBox.innerHTML = `
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-pink-400 uppercase mb-1">Karakter Utama</p>
-                    <p class="text-sm font-bold text-white">${item.karakter || '-'}</p>
-                </div>
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-purple-400 uppercase mb-1">Latar Cerita</p>
-                    <p class="text-sm font-bold text-white">${item.setting || '-'}</p>
-                </div>
-            </div>
-            <div class="prose prose-invert max-w-none">
-                <div class="text-white leading-relaxed whitespace-pre-wrap text-lg">${item.narasi}</div>
-            </div>
-            ${item.moral ? `
-            <div class="mt-10 p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-                <p class="text-xs font-black text-pink-400 uppercase mb-2">Pesan Moral</p>
-                <p class="text-slate-200 italic">${item.moral}</p>
-            </div>` : ''}
-        `;
+     const scenes = item.narasi.split('\n\n');
+contentBox.innerHTML = `
+  <div class="grid grid-cols-2 gap-3 mb-6">
+    <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+      <p class="text-[10px] font-black text-pink-400 uppercase">Karakter</p>
+      <p class="text-sm font-bold">${item.karakter || '-'}</p>
+    </div>
+    <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+      <p class="text-[10px] font-black text-purple-400 uppercase">Latar</p>
+      <p class="text-sm font-bold">${item.setting || '-'}</p>
+    </div>
+  </div>
+
+  ${scenes.map(scene => `
+    <div class="mb-5 p-4 rounded-2xl bg-white/5 border border-white/10">
+      <p class="leading-relaxed text-slate-100 text-[15px] whitespace-pre-wrap">
+        ${scene}
+      </p>
+    </div>
+  `).join('')}
+
+  ${item.moral ? `
+    <div class="mt-8 p-5 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+      <p class="text-xs font-black text-pink-400 uppercase mb-1">Pesan Moral</p>
+      <p class="italic text-slate-200 text-sm">${item.moral}</p>
+    </div>
+  ` : ''}
+`;
     } else {
-        // TAMPILAN MODUL STANDAR (Data dari buatmateri.html tetap aman!)
-        contentBox.innerHTML = `
-            <div class="prose prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-wrap">
-                ${item.konten}
-            </div>
-        `;
-    }
+  contentBox.innerHTML = `
+    <div class="mb-6 p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+      <p class="text-xs font-black uppercase text-cyan-400 mb-1">Ringkasan Materi</p>
+      <p class="text-sm text-slate-200">Baca materi berikut dengan fokus pada poin penting.</p>
+    </div>
+
+    <div class="prose prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-wrap text-[15px] md:text-lg">
+      ${item.konten}
+    </div>
+  `;
+}
     
     // Media handling tetap sama untuk keduanya
     const mediaBox = document.getElementById('read-media');
@@ -207,7 +220,11 @@
         if (item.mediaType === 'video') {
             mediaBox.innerHTML = `<video src="${item.media}" controls class="w-full aspect-video bg-black rounded-3xl"></video>`;
         } else {
-            mediaBox.innerHTML = `<img src="${item.media}" class="w-full h-auto rounded-3xl object-cover">`;
+            mediaBox.innerHTML = `<img 
+  src="${item.media}"
+  loading="lazy"
+  class="w-full h-auto rounded-2xl object-cover"
+/>`;
         }
     } else {
         mediaBox.classList.add('hidden');
