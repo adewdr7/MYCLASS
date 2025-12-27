@@ -7,10 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Cloudinary SDK -->
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <!-- Cloudinary SDK (HARUS DULU) -->
+<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 
+<!-- Config Cloudinary (GLOBAL) -->
 <script src="cloudinary-config.js"></script>
+
+<!-- Baru script module -->
 <script type="module" src="app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -220,6 +223,43 @@ window.addEventListener('DOMContentLoaded', () => {
   updateUI();
   lucide.createIcons();
 });
+
+// ====================================
+// CLOUDINARY UPLOAD (STORYTELLING)
+// ====================================
+let myWidget = null;
+
+if (window.cloudinary && window.CLOUDINARY_CONFIG) {
+  myWidget = window.cloudinary.createUploadWidget({
+    cloudName: window.CLOUDINARY_CONFIG.cloudName,
+    uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
+    ...window.CLOUDINARY_CONFIG.uploadOptions
+  }, (error, result) => {
+
+    if (!error && result.event === "success") {
+      document.getElementById('media-url').value = result.info.secure_url;
+      document.getElementById('media-type').value = result.info.resource_type;
+
+      document.getElementById('media-preview').classList.remove('hidden');
+      document.getElementById('upload-placeholder').classList.add('hidden');
+    }
+
+  });
+}
+
+const trigger = document.getElementById('upload-trigger');
+if (trigger) {
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    if (!myWidget) {
+      alert("Cloudinary belum siap.");
+      return;
+    }
+
+    myWidget.open();
+  });
+}
 
 // ===== SUBMIT =====
 document.getElementById('story-form').onsubmit = async (e) => {
