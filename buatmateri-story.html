@@ -164,120 +164,93 @@
         <div class="bg-purple-500 p-1 rounded-full"><i data-lucide="check" class="w-4 h-4 text-white"></i></div>
         <p class="font-bold text-sm uppercase tracking-tight">Transmisi Cerita Berhasil!</p>
     </div>
-
 <script type="module">
-    // Ambil db dari app.js (Pastikan jalur file benar)
-    import { db } from "./app.js"; 
-    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "./app.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getCurrentUserContext } from "./app.js";
 
-    // --- DATA FILTER (MAPEL RULES) ---
-    const MAPEL_RULES = {
-        "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
-        "BPK JAJANG": ["PJOK"],
-        "IBU ILAH": ["Bahasa Inggris"],
-        "IBU LINA": ["Agama Islam"],
-        "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
-    };
+const appId = "sekolah-sdnwidarasari";
 
-    import { getCurrentUserContext } from './app.js';
+const MAPEL_RULES = {
+  "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
+  "BPK JAJANG": ["PJOK"],
+  "IBU ILAH": ["Bahasa Inggris"],
+  "IBU LINA": ["Agama Islam"],
+  "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
+};
 
-const { name: currentAuthor, isTester } = getCurrentUserContext();
-    const appId = 'sekolah-sdnwidarasari'; 
+// ===== USER CONTEXT =====
+let { name: currentAuthor, isTester } = getCurrentUserContext();
+currentAuthor = (currentAuthor || "").toUpperCase();
 
-    function updateMapelFilter(name) {
-        const select = document.getElementById('mapel-select');
-        if(select) {
-            select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
-            const list = MAPEL_RULES[name] || ["Materi Umum"];
-            list.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m; opt.innerText = m;
-                select.appendChild(opt);
-            });
-        }
-    }
+const savedTester = sessionStorage.getItem("active_tester_name");
+if (isTester && savedTester) currentAuthor = savedTester;
 
-    // --- INITIAL LOAD ---
-    window.addEventListener('DOMContentLoaded', () => {
-        if (isTester) {
-            document.getElementById('tester-panel')?.classList.remove('hidden');
-            const tSel = document.getElementById('tester-identity-select');
-            if(tSel) {
-                tSel.value = currentAuthor;
-                tSel.onchange = (e) => {
-                    currentAuthor = e.target.value;
-sessionStorage.setItem('active_tester_name', currentAuthor);
-                    const savedTester = sessionStorage.getItem('active_tester_name');
-if (isTester && savedTester) {
-    currentAuthor = savedTester;
+// ===== UI =====
+function updateMapel(name) {
+  const select = document.getElementById('mapel-select');
+  select.innerHTML = `<option value="" disabled selected>Pilih Mapel...</option>`;
+  const list = MAPEL_RULES[name] || ["Materi Umum"];
+  list.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    select.appendChild(opt);
+  });
 }
-updateAuthorUI(currentAuthor);
-                };
-            }
-        }
-currentAuthor = (currentAuthor || '').toUpperCase();
-        updateMapelFilter(currentAuthor);
-        lucide.createIcons();
-    });
 
-    // --- CLOUDINARY WIDGET (Merujuk ke CLOUDINARY_CONFIG) ---
-    const myWidget = cloudinary.createUploadWidget({
-        cloudName: CLOUDINARY_CONFIG.cloudName,
-        uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
-        ...CLOUDINARY_CONFIG.uploadOptions
-    }, (error, result) => {
-        if (!error && result && result.event === "success") {
-            const url = result.info.secure_url;
-            const resourceType = result.info.resource_type; 
-            document.getElementById('media-url').value = url;
-            document.getElementById('media-type').value = resourceType;
-            
-            const previewContainer = document.getElementById('preview-content');
-            previewContainer.innerHTML = `<div class="absolute -top-3 -right-3 bg-purple-600 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg">${resourceType}</div>`;
-            
-            if (resourceType === 'image') previewContainer.innerHTML += `<img src="${url}" class="max-h-64 rounded-3xl mx-auto">`;
-            else if (resourceType === 'video') previewContainer.innerHTML += `<video src="${url}" class="max-h-64 rounded-3xl mx-auto" controls></video>`;
-            
-            document.getElementById('media-preview').classList.remove('hidden');
-            document.getElementById('upload-placeholder').classList.add('hidden');
-            lucide.createIcons();
-        }
-    });
+function updateUI() {
+  document.getElementById('display-author').innerText = currentAuthor;
+  updateMapel(currentAuthor);
+}
 
-    document.getElementById('upload-trigger').onclick = (e) => { e.preventDefault(); myWidget.open(); };
-
-    // --- SUBMIT ---
-    document.getElementById('story-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btn-submit');
-        btn.disabled = true;
-        btn.innerHTML = "MEMANCARKAN...";
-
-        const storyData = {
-            tipe: "storytelling",
-            judul: document.getElementById('judul').value,
-            mapel: document.getElementById('mapel-select').value,
-            karakter: document.getElementById('karakter').value,
-            setting: document.getElementById('setting').value,
-            narasi: document.getElementById('narasi').value,
-            moral: document.getElementById('moral').value,
-            media: document.getElementById('media-url').value,
-            mediaType: document.getElementById('media-type').value,
-            author: currentAuthor,
-            createdAt: new Date().toISOString()
-        };
-
-        try {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), storyData);
-            document.getElementById('toast').classList.remove('hidden');
-            setTimeout(() => window.location.href = 'dashboard.html', 2000);
-        } catch (err) {
-            console.error(err);
-            btn.disabled = false;
-            btn.innerText = "PUBLISH CERITA";
-            alert("Gagal simpan ke database.");
-        }
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  if (isTester) {
+    document.getElementById('tester-panel').classList.remove('hidden');
+    const tSel = document.getElementById('tester-identity-select');
+    tSel.value = currentAuthor;
+    tSel.onchange = e => {
+      currentAuthor = e.target.value.toUpperCase();
+      sessionStorage.setItem("active_tester_name", currentAuthor);
+      updateUI();
     };
+  }
+
+  updateUI();
+  lucide.createIcons();
+});
+
+// ===== SUBMIT =====
+document.getElementById('story-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerText = "MEMANCARKAN...";
+
+  try {
+    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
+      tipe: "storytelling",
+      judul: judul.value,
+      mapel: document.getElementById('mapel-select').value,
+      karakter: karakter.value,
+      setting: setting.value,
+      narasi: narasi.value,
+      moral: moral.value,
+      media: document.getElementById('media-url').value,
+      mediaType: document.getElementById('media-type').value,
+      author: currentAuthor,
+      createdAt: new Date().toISOString()
+    });
+
+    document.getElementById('toast').classList.remove('hidden');
+    setTimeout(() => location.href = 'dashboard.html', 2000);
+  } catch (e) {
+    alert("Gagal simpan cerita!");
+    btn.disabled = false;
+    btn.innerText = "Publish Cerita";
+  }
+};
 </script>
 </body>
 </html>
