@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Academy - Profil Pengguna</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050505;
+            color: #f8fafc;
+        }
+
+        .glass {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-text {
+            background: linear-gradient(to right, #22d3ee, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .checkbox-custom:checked {
+            background-color: #22d3ee;
+            border-color: #22d3ee;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 pointer-events-none -z-10">
+        <div class="absolute top-0 right-0 w-[50%] h-[50%] bg-cyan-500/5 blur-[120px]"></div>
+        <div class="absolute bottom-0 left-0 w-[50%] h-[50%] bg-purple-500/5 blur-[120px]"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <nav class="sticky top-0 z-50 glass border-b border-white/10 px-6 py-4 flex justify-between items-center">
+        <a href="dashboard.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition-all group">
+            <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+            <span class="text-sm font-bold">Kembali</span>
+        </a>
+        <div class="flex items-center gap-3">
+            <button onclick="switchRole()" class="text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all">
+                Switch Role (Tester)
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 mt-12">
+        <!-- Profile Header Section -->
+        <div class="flex flex-col md:flex-row items-center gap-8 mb-12">
+            <div class="relative group">
+                <div class="w-32 h-32 rounded-[2.5rem] bg-gradient-to-tr from-cyan-500 to-purple-600 p-1">
+                    <div class="w-full h-full rounded-[2.3rem] bg-black overflow-hidden flex items-center justify-center">
+                        <img id="avatar-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Stellar" alt="Avatar" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <button class="absolute -bottom-2 -right-2 p-2 bg-white text-black rounded-xl shadow-xl hover:scale-110 transition-transform">
+                    <i data-lucide="camera" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="text-center md:text-left">
+                <div id="role-label" class="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    Siswa Academy
+                </div>
+                <h1 id="user-fullname" class="text-4xl font-black mb-1">Nama Pengguna</h1>
+                <p id="user-email" class="text-slate-500 text-sm">user@stellaracademy.id</p>
+            </div>
+        </div>
+
+        <!-- History/Activity Section -->
+        <div class="glass rounded-[2.5rem] p-8 border border-white/10">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                    <h2 id="history-title" class="text-xl font-bold flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-purple-400"></i>
+                        Riwayat Aktivitas
+                    </h2>
+                    <p id="history-desc" class="text-xs text-slate-500 mt-1">Daftar konten yang telah Anda akses baru-baru ini.</p>
+                </div>
+                
+                <!-- Admin Only Bulk Actions -->
+                <div id="admin-actions" class="hidden flex items-center gap-2">
+                    <button id="btn-select-all" class="text-xs font-bold text-slate-400 hover:text-white px-3 py-1.5">Pilih Semua</button>
+                    <button onclick="bulkDelete()" class="text-xs font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 px-3 py-1.5 rounded-lg hover:bg-rose-500/20 transition-all">
+                        Hapus Terpilih
+                    </button>
+                </div>
+            </div>
+
+            <!-- List of Content -->
+            <div id="history-list" class="space-y-3">
+                <!-- Data will be injected here -->
+                <div class="py-10 text-center opacity-50">
+                    <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2"></i>
+                    <p class="text-sm">Belum ada riwayat aktivitas</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Edit (Placeholder) -->
+    <div id="modal-edit" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-6">
+        <div class="glass w-full max-w-lg rounded-[2rem] p-8">
+            <h3 class="text-xl font-bold mb-6">Edit Materi</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-500 block mb-1">Judul Materi</label>
+                    <input type="text" id="edit-title" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-cyan-500">
+                </div>
+                <div class="flex justify-end gap-3 mt-8">
+                    <button onclick="closeModal()" class="px-6 py-2 text-sm font-bold">Batal</button>
+                    <button onclick="saveEdit()" class="px-6 py-2 bg-cyan-500 text-black font-bold rounded-xl">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockMateriAdmin = [
+            { id: 1, title: 'Pengenalan Quantum Computing', date: '24 Okt 2023', type: 'Materi' },
+            { id: 2, title: 'Algoritma Lanjut 101', date: '22 Okt 2023', type: 'Materi' },
+            { id: 3, title: 'Kuis Logika Dasar', date: '20 Okt 2023', type: 'Latihan' }
+        ];
+
+        const mockHistoryMurid = [
+            { id: 101, title: 'Matematika: Trigonometri', date: 'Hari ini', progress: '100%' },
+            { id: 102, title: 'Fisika: Termodinamika', date: 'Kemarin', progress: '45%' }
+        ];
+
+        // State Management
+        let userRole = localStorage.getItem('userRole') || 'murid';
+        let userName = localStorage.getItem('userName') || 'Explorer';
+
+        function initProfile() {
+            const roleLabel = document.getElementById('role-label');
+            const historyTitle = document.getElementById('history-title');
+            const historyDesc = document.getElementById('history-desc');
+            const adminActions = document.getElementById('admin-actions');
+            const historyList = document.getElementById('history-list');
+
+            document.getElementById('user-fullname').innerText = userName;
+            document.getElementById('avatar-img').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`;
+
+            if (userRole === 'admin') {
+                roleLabel.innerText = 'Administrator / Guru';
+                roleLabel.className = 'inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 bg-amber-500/10 text-amber-500 border border-amber-500/20';
+                historyTitle.innerHTML = `<i data-lucide="file-text" class="w-5 h-5 text-amber-400"></i> Kelola Konten Saya`;
+                historyDesc.innerText = 'Daftar materi dan latihan yang pernah Anda publikasikan.';
+                adminActions.classList.remove('hidden');
+                renderAdminHistory();
+            } else {
+                roleLabel.innerText = 'Siswa Academy';
+                roleLabel.className = 'inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
+                adminActions.classList.add('hidden');
+                renderMuridHistory();
+            }
+
+            lucide.createIcons();
+        }
+
+        function renderAdminHistory() {
+            const container = document.getElementById('history-list');
+            container.innerHTML = mockMateriAdmin.map(item => `
+                <div class="history-item glass flex items-center justify-between p-4 rounded-2xl transition-all group">
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" class="checkbox-custom w-4 h-4 rounded border-white/20 bg-transparent">
+                        <div>
+                            <h4 class="font-bold text-sm">${item.title}</h4>
+                            <p class="text-[10px] text-slate-500 uppercase">${item.type} • Diterbitkan ${item.date}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openEdit(${item.id})" class="p-2 hover:bg-white/10 rounded-lg text-cyan-400">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteItem(${item.id})" class="p-2 hover:bg-white/10 rounded-lg text-rose-500">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMuridHistory() {
+            const container = document.getElementById('history-list');
+            container.innerHTML = mockHistoryMurid.map(item => `
+                <div class="history-item glass flex items-center justify-between p-4 rounded-2xl transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                            <i data-lucide="book-open" class="text-cyan-400 w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm">${item.title}</h4>
+                            <p class="text-[10px] text-slate-500 uppercase">Dibaca ${item.date}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] font-bold text-slate-400 mb-1">Progress</div>
+                        <div class="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-cyan-400" style="width: ${item.progress}"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Actions
+        function switchRole() {
+            const newRole = userRole === 'admin' ? 'murid' : 'admin';
+            const newName = newRole === 'admin' ? 'DEV_ADMIN' : 'DEV_MURID';
+            localStorage.setItem('userRole', newRole);
+            localStorage.setItem('userName', newName);
+            window.location.reload();
+        }
+
+        function openEdit(id) {
+            document.getElementById('modal-edit').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-edit').classList.add('hidden');
+        }
+
+        function deleteItem(id) {
+            if(confirm('Hapus konten ini secara permanen?')) {
+                // Logic hapus
+                alert('Konten dihapus dari sistem.');
+            }
+        }
+
+        function bulkDelete() {
+            const checked = document.querySelectorAll('.checkbox-custom:checked').length;
+            if(checked > 0) {
+                if(confirm(`Hapus ${checked} item terpilih?`)) {
+                    alert('Item terpilih telah dihapus.');
+                }
+            } else {
+                alert('Pilih item terlebih dahulu.');
+            }
+        }
+
+        // Init on load
+        window.onload = initProfile;
+    </script>
+</body>
+</html>
+
