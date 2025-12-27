@@ -230,12 +230,15 @@ window.addEventListener('DOMContentLoaded', () => {
 let myWidget = null;
 
 if (window.cloudinary && window.CLOUDINARY_CONFIG) {
-  myWidget = window.cloudinary.createUploadWidget({
+  
+myWidget = window.cloudinary.createUploadWidget({
     cloudName: window.CLOUDINARY_CONFIG.cloudName,
     uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
-    ...window.CLOUDINARY_CONFIG.uploadOptions
-  }, (error, result) => {
-
+    sources: window.CLOUDINARY_CONFIG.uploadOptions.sources,
+    clientAllowedFormats: window.CLOUDINARY_CONFIG.uploadOptions.clientAllowedFormats,
+    maxFileSize: window.CLOUDINARY_CONFIG.uploadOptions.maxFileSize,
+    styles: window.CLOUDINARY_CONFIG.uploadOptions.styles
+}, (error, result) => {
     // Temukan bagian result.event === "success" di dalam myWidget
 if (!error && result.event === "success") {
   document.getElementById('media-url').value = result.info.secure_url;
