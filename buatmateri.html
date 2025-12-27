@@ -117,123 +117,92 @@
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl text-cyan-400 font-bold hidden items-center gap-3 shadow-2xl">
         <i data-lucide="check-circle"></i> Berhasil diunggah!
     </div>
+<script type="module">
+import { db } from './app.js';
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getCurrentUserContext } from './app.js';
 
-    <script type="module">
-        // Import dari app.js sesuai rujukan Anda
-        import { db, auth } from './app.js';
-        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const appId = "sekolah-sdnwidarasari";
 
-        const appId = "sekolah-sdnwidarasari"; // Fallback appId jika tidak ter-export
+const MAPEL_RULES = {
+  "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
+  "BPK JAJANG": ["PJOK"],
+  "IBU ILAH": ["Bahasa Inggris"],
+  "IBU LINA": ["Agama Islam"],
+  "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
+};
 
-        const MAPEL_RULES = {
-            "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
-            "BPK JAJANG": ["PJOK"],
-            "IBU ILAH": ["Bahasa Inggris"],
-            "IBU LINA": ["Agama Islam"],
-            "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
-        };
+// ===== USER CONTEXT =====
+let { name: currentAuthor, isTester } = getCurrentUserContext();
+currentAuthor = (currentAuthor || "").toUpperCase();
 
-        import { getCurrentUserContext } from './app.js';
+// ambil tester aktif dari session
+const savedTester = sessionStorage.getItem("active_tester_name");
+if (isTester && savedTester) currentAuthor = savedTester;
 
-const { name: currentAuthor, isTester } = getCurrentUserContext();
-
-        // --- FUNGSI UI ---
-        function updateAuthorUI(name) {
-            document.getElementById('display-author').innerText = name;
-            const select = document.getElementById('mapel-select');
-            select.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
-            
-            const list = MAPEL_RULES[name] || ["Materi Umum"];
-            list.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m; opt.innerText = m;
-                select.appendChild(opt);
-            });
-        }
-
-        // --- CLOUDINARY LOGIC ---
-        document.getElementById('btn-upload').onclick = () => {
-            if (typeof cloudinary === 'undefined' || typeof CLOUDINARY_CONFIG === 'undefined') {
-                alert("Cloudinary SDK atau Config belum termuat!");
-                return;
-            }
-
-            cloudinary.openUploadWidget({
-                cloudName: CLOUDINARY_CONFIG.cloudName,
-                uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
-                ...CLOUDINARY_CONFIG.uploadOptions
-            }, (err, res) => {
-                if (!err && res.event === "success") {
-                    document.getElementById('media-url').value = res.info.secure_url;
-                    document.getElementById('media-type').value = res.info.resource_type;
-                    document.getElementById('preview-info').classList.remove('hidden');
-                    document.getElementById('upload-prompt').classList.add('hidden');
-                    document.getElementById('file-label').innerText = `File: ${res.info.original_filename}`;
-                }
-            });
-        };
-
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', () => {
-            // Cek jika user login dengan nama "TESTER..." atau paksa tampil jika ingin debug
-            if (isTester || currentAuthor.includes("TESTER")) {
-                document.getElementById('tester-panel').classList.remove('hidden');
-                const tSel = document.getElementById('tester-identity-select');
-                tSel.value = currentAuthor;
-                tSel.onchange = (e) => {
-                    currentAuthor = e.target.value;
-sessionStorage.setItem('active_tester_name', currentAuthor);
-                    const savedTester = sessionStorage.getItem('active_tester_name');
-if (isTester && savedTester) {
-    currentAuthor = savedTester;
+// ===== UI FUNCTIONS =====
+function updateMapel(name) {
+  const select = document.getElementById('mapel-select');
+  select.innerHTML = `<option value="" disabled selected>Pilih Mapel...</option>`;
+  const list = MAPEL_RULES[name] || ["Materi Umum"];
+  list.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    select.appendChild(opt);
+  });
 }
-updateAuthorUI(currentAuthor);
-                };
-            }
 
-            updateAuthorUI(currentAuthor);
-            lucide.createIcons();
-        });
+function updateAuthorUI() {
+  document.getElementById('display-author').innerText = currentAuthor;
+  updateMapel(currentAuthor);
+}
 
-        // --- SUBMIT LOGIC ---
-        document.getElementById('materi-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit');
-const mediaUrl = document.getElementById('media-url').value;
-if (!mediaUrl) {
-    alert("Wajib mengunggah media (gambar/video/file) sebelum publikasi!");
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  if (isTester) {
+    document.getElementById('tester-panel').classList.remove('hidden');
+    const tSel = document.getElementById('tester-identity-select');
+    tSel.value = currentAuthor;
+    tSel.onchange = e => {
+      currentAuthor = e.target.value.toUpperCase();
+      sessionStorage.setItem("active_tester_name", currentAuthor);
+      updateAuthorUI();
+    };
+  }
+
+  updateAuthorUI();
+  lucide.createIcons();
+});
+
+// ===== SUBMIT =====
+document.getElementById('materi-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerText = "SINKRONISASI...";
+
+  try {
+    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
+      judul: judul.value,
+      mapel: document.getElementById('mapel-select').value,
+      deskripsi: deskripsi.value,
+      konten: konten.value,
+      media: document.getElementById('media-url').value,
+      mediaType: document.getElementById('media-type').value,
+      author: currentAuthor,
+      createdAt: new Date().toISOString()
+    });
+
+    document.getElementById('toast').classList.remove('hidden');
+    setTimeout(() => location.href = 'dashboard.html', 2000);
+  } catch (e) {
+    alert("Gagal menyimpan!");
     btn.disabled = false;
     btn.innerText = "PUBLIKASIKAN";
-    return;
-}
-            btn.disabled = true;
-            btn.innerText = "SINKRONISASI...";
-
-            try {
-                // Rule: /artifacts/{appId}/public/data/materi
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
-                    judul: document.getElementById('judul').value,
-                    mapel: document.getElementById('mapel-select').value,
-                    deskripsi: document.getElementById('deskripsi').value,
-                    konten: document.getElementById('konten').value,
-                    media: getOptimizedUrl(document.getElementById('media-url').value),
-
-                    mediaType: document.getElementById('media-type').value,
-                    author: currentAuthor,
-                    createdAt: new Date().toISOString()
-                });
-
-                document.getElementById('toast').classList.remove('hidden');
-                document.getElementById('toast').classList.add('flex');
-                setTimeout(() => window.location.href = 'dashboard.html', 2000);
-            } catch (err) {
-                console.error(err);
-                alert("Gagal menyimpan ke Firebase!");
-                btn.disabled = false;
-                btn.innerText = "PUBLIKASIKAN";
-            }
-        };
-    </script>
+  }
+};
+</script>
 </body>
 </html>
 
