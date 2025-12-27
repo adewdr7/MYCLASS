@@ -207,7 +207,6 @@ if (uploadBtn) {
 
   });
 }
-
 // ===== SUBMIT =====
 document.getElementById('materi-form').onsubmit = async (e) => {
   e.preventDefault();
@@ -215,14 +214,20 @@ document.getElementById('materi-form').onsubmit = async (e) => {
   btn.disabled = true;
   btn.innerText = "SINKRONISASI...";
 
+  // --- KODE BARU DI SINI ---
+  const mediaUrlRaw = document.getElementById('media-url').value;
+  // Memastikan fungsi getOptimizedUrl dipanggil hanya jika ada URL-nya
+  const optimizedUrl = mediaUrlRaw ? window.getOptimizedUrl(mediaUrlRaw) : "";
+  // -------------------------
+
   try {
     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
       judul: judul.value,
       mapel: document.getElementById('mapel-select').value,
       deskripsi: deskripsi.value,
       konten: konten.value,
-      media: window.getOptimizedUrl(document.getElementById('media-url').value),
-      mediaType: document.getElementById('media-type').value,
+      media: optimizedUrl, // Gunakan variabel optimizedUrl yang sudah diproses
+      mediaType: document.getElementById('media-type').value || "none", // Beri fallback jika kosong
       author: currentAuthor,
       createdAt: new Date().toISOString()
     });
@@ -230,6 +235,7 @@ document.getElementById('materi-form').onsubmit = async (e) => {
     document.getElementById('toast').classList.remove('hidden');
     setTimeout(() => location.href = 'dashboard.html', 2000);
   } catch (e) {
+    console.error(e); // Tambahkan log error untuk mempermudah debug
     alert("Gagal menyimpan!");
     btn.disabled = false;
     btn.innerText = "PUBLIKASIKAN";
