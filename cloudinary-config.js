@@ -1,18 +1,16 @@
 /**
  * STELLAR ACADEMY - Cloudinary Configuration
- * Pisahkan file ini agar mudah dikelola tanpa mengubah kode utama.
+ * Dibuat GLOBAL agar bisa diakses oleh script module di HTML.
  */
 
-const CLOUDINARY_CONFIG = {
-    cloudName: "dvjfrrusn",    // Ganti dengan Cloud Name Anda
-    uploadPreset: "forumjb",      // Ganti dengan Upload Preset Anda (Unsigned)
-    
-    // Opsi Tambahan untuk optimasi bandwidth
+window.CLOUDINARY_CONFIG = {
+    cloudName: "dvjfrrusn", 
+    uploadPreset: "forumjb", 
     uploadOptions: {
         sources: ['local', 'url', 'camera'],
         multiple: false,
         clientAllowedFormats: ["png", "jpg", "jpeg", "mp4", "mp3", "pdf"],
-        maxFileSize: 10485760, // Batas 10MB
+        maxFileSize: 10485760,
         styles: {
             palette: {
                 window: "#050505",
@@ -33,10 +31,8 @@ const CLOUDINARY_CONFIG = {
     }
 };
 
-// Fungsi pembantu untuk mengoptimalkan URL Cloudinary (Auto format & Quality)
-function getOptimizedUrl(url) {
+window.getOptimizedUrl = function (url) {
     if (!url) return "";
-    // Menambahkan parameter f_auto (format otomatis) dan q_auto (kualitas otomatis)
     return url.replace("/upload/", "/upload/f_auto,q_auto/");
-}
+};
 
