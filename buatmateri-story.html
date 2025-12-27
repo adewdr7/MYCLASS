@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Academy - Buat Storytelling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    
+    <!-- Config File Rujukan (Pastikan file ini ada di folder Anda) -->
+    <script src="cloudinary-config.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
+        .glass { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .neon-text { background: linear-gradient(to right, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        input, textarea, select { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; transition: all 0.3s ease; }
+        input:focus, textarea:focus { border-color: #a855f7 !important; outline: none; box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Navigasi -->
+        <a href="pilihtipe.html" class="flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors mb-8 inline-flex group">
+            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+            <span class="text-sm font-bold uppercase tracking-wider">Ganti Tipe Materi</span>
+        </a>
+
+        <!-- Header -->
+        <div class="mb-10">
+            <h1 class="text-4xl font-black uppercase tracking-tighter italic">Create <span class="neon-text">Storytelling</span></h1>
+            <p class="text-slate-500 mt-2 italic">Gunakan kekuatan narasi untuk menanamkan pemahaman mendalam.</p>
+        </div>
+
+        <form id="story-form" class="space-y-8">
+            <!-- Informasi Dasar Cerita -->
+            <div class="glass p-8 rounded-[2rem] space-y-6 border-purple-500/20">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="book-marked" class="text-purple-400 w-5 h-5"></i>
+                    <h2 class="text-lg font-bold uppercase tracking-wide">Fondasi Cerita</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Judul Cerita</label>
+                        <input type="text" id="judul" placeholder="Contoh: Petualangan Si Tetes Hujan" class="w-full p-4 rounded-2xl" required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Mata Pelajaran</label>
+                        <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none" required>
+                            <!-- Opsi akan diisi oleh JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Karakter Utama</label>
+                        <input type="text" id="karakter" placeholder="Contoh: Profesor Atom, Kancil Cerdik" class="w-full p-4 rounded-2xl">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Latar / Setting</label>
+                        <input type="text" id="setting" placeholder="Contoh: Laboratorium Masa Depan, Hutan Rimba" class="w-full p-4 rounded-2xl">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Konten Narasi -->
+            <div class="glass p-8 rounded-[2rem] space-y-6 border-pink-500/20">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="pen-tool" class="text-pink-400 w-5 h-5"></i>
+                    <h2 class="text-lg font-bold uppercase tracking-wide">Isi Cerita & Pesan</h2>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Alur Narasi (Gunakan bahasa yang menarik)</label>
+                    <textarea id="narasi" rows="8" placeholder="Tuliskan cerita Anda di sini..." class="w-full p-6 rounded-3xl leading-relaxed" required></textarea>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Moral / Intisari Pembelajaran</label>
+                    <textarea id="moral" rows="2" placeholder="Apa yang ingin dicapai setelah membaca cerita ini?" class="w-full p-4 rounded-2xl"></textarea>
+                </div>
+            </div>
+
+            <!-- Media Visual Cerita -->
+            <div class="glass p-8 rounded-[2rem] space-y-6 border-white/10">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="image" class="text-white w-5 h-5"></i>
+                    <h2 class="text-lg font-bold uppercase tracking-wide">Ilustrasi Cerita</h2>
+                </div>
+
+                <div class="flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-10 rounded-[2rem] transition-all hover:bg-white/5" id="upload-trigger">
+                    <div id="media-preview" class="hidden mb-4">
+                        <img id="preview-img" src="" class="max-h-48 rounded-2xl shadow-2xl">
+                    </div>
+                    <div id="upload-placeholder" class="text-center">
+                        <div class="bg-white/10 p-4 rounded-full inline-block mb-4">
+                            <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400"></i>
+                        </div>
+                        <p class="text-sm font-bold">Klik untuk Unggah Ilustrasi</p>
+                        <p class="text-xs text-slate-500 mt-1 uppercase">PNG, JPG (Max 5MB)</p>
+                    </div>
+                    <input type="hidden" id="media-url">
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="flex flex-col md:flex-row gap-4 pt-4">
+                <button type="submit" id="btn-submit" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 p-5 rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all hover:scale-[1.02] shadow-xl shadow-purple-500/20">
+                    Publish Cerita
+                </button>
+                <button type="button" onclick="window.location.href='pilihtipe.html'" class="px-8 py-5 rounded-2xl font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 transition-all border border-white/10 text-slate-400">
+                    Batal
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Toast Success -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-full hidden items-center gap-4 border-purple-500/50 animate-bounce">
+        <div class="bg-purple-500 p-1 rounded-full"><i data-lucide="check" class="w-4 h-4 text-white"></i></div>
+        <p class="font-bold text-sm uppercase tracking-tight">Materi Storytelling Berhasil Disinkronisasi!</p>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        const firebaseConfig = JSON.parse(localStorage.getItem('firebaseConfig'));
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = 'stellar-academy'; // Sesuaikan appId Anda
+
+        // --- AUTH LOGIC ---
+        let currentAuthor = localStorage.getItem('userName') || "Unknown Voyager";
+        signInAnonymously(auth).catch(err => console.error("Auth Error:", err));
+
+        // --- FETCH MAPEL ---
+        // Sesuai dengan filter yang ada di dashboard Anda
+        const mapelList = ["Matematika", "Bahasa Indonesia", "Sains", "Sejarah", "Bahasa Inggris", "Lainnya"];
+        const selectMapel = document.getElementById('mapel-select');
+        mapelList.forEach(m => {
+            let opt = document.createElement('option');
+            opt.value = m;
+            opt.innerText = m;
+            selectMapel.appendChild(opt);
+        });
+
+        // --- CLOUDINARY LOGIC ---
+        const myWidget = cloudinary.createUploadWidget({
+            cloudName: 'dlsntvbsj', // Ganti dengan cloudName Anda
+            uploadPreset: 'ml_default'
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                const url = result.info.secure_url;
+                document.getElementById('media-url').value = url;
+                document.getElementById('preview-img').src = url;
+                document.getElementById('media-preview').classList.remove('hidden');
+                document.getElementById('upload-placeholder').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('upload-trigger').onclick = () => myWidget.open();
+
+        // --- SUBMIT LOGIC ---
+        document.getElementById('story-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerText = "SINKRONISASI TRANSMISI...";
+
+            const storyData = {
+                tipe: "storytelling",
+                judul: document.getElementById('judul').value,
+                mapel: document.getElementById('mapel-select').value,
+                karakter: document.getElementById('karakter').value,
+                setting: document.getElementById('setting').value,
+                narasi: document.getElementById('narasi').value,
+                moral: document.getElementById('moral').value,
+                media: document.getElementById('media-url').value,
+                author: currentAuthor,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                // Simpan ke koleksi 'materi' (agar tetap muncul di list utama)
+                // Kita beri flag 'tipe: storytelling' agar nanti di halaman detail bisa dibedakan tampilannya
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), storyData);
+
+                document.getElementById('toast').classList.remove('hidden');
+                document.getElementById('toast').classList.add('flex');
+                setTimeout(() => window.location.href = 'dashboard.html', 2500);
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerText = "PUBLISH CERITA";
+            }
+        };
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+
