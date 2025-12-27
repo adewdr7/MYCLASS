@@ -189,21 +189,19 @@ if (uploadBtn) {
     }
 
     window.cloudinary.openUploadWidget({
-      cloudName: window.CLOUDINARY_CONFIG.cloudName,
-      uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
-      ...window.CLOUDINARY_CONFIG.uploadOptions
-    }, (err, res) => {
-
-      if (!err && res.event === "success") {
+    cloudName: window.CLOUDINARY_CONFIG.cloudName,
+    uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
+    sources: window.CLOUDINARY_CONFIG.uploadOptions.sources,
+    multiple: false,
+    styles: window.CLOUDINARY_CONFIG.uploadOptions.styles
+}, (err, res) => {
+    if (!err && res.event === "success") {
         document.getElementById('media-url').value = res.info.secure_url;
         document.getElementById('media-type').value = res.info.resource_type;
-
-        // UI feedback
         document.getElementById('preview-info').classList.remove('hidden');
         document.getElementById('upload-prompt').classList.add('hidden');
-      }
-
-    });
+    }
+});
 
   });
 }
