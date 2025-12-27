@@ -1,20 +1,18 @@
-// app.js - FIXED VERSION
-// Tujuan:
-// 1. Nama guru KONSISTEN (tidak hilang, tidak berubah)
-// 2. Tester mode STABIL
-// 3. Semua halaman pakai satu sumber data (single source of truth)
+// app.js — FINAL FIX VERSION
+// Stable anonymous auth + name claiming + shared context
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
   signInAnonymously,
-  signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
   setDoc,
+  getDoc,
   runTransaction,
   serverTimestamp,
   collection,
@@ -34,71 +32,63 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+const APP_ROOT = ["artifacts", "sekolah-sdnwidarasari"];
 
 /* =========================
-   AUTH STATE
+   AUTH READY PROMISE
 ========================= */
+let authReadyResolve;
+export const authReady = new Promise((res) => (authReadyResolve = res));
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
     localStorage.setItem("userUid", user.uid);
+    authReadyResolve(user);
   }
 });
 
 /* =========================
-   LOGIN DENGAN NAMA (FIX)
+   LOGIN + CLAIM NAME
 ========================= */
-/**
- * @param {string} nama - Nama guru / murid (KHUSUS)
- * @param {string} role - admin | guru | murid
- * @param {boolean} isTester - mode tester
- */
 export async function loginWithName(nama, role, isTester = false) {
   try {
-    const credential = await signInAnonymously(auth);
-    const uid = credential.user.uid;
-
-    // 🔒 STANDARISASI NAMA (INI KUNCI SEMUA FILTER MAPEL)
+    const cred = await signInAnonymously(auth);
+    const uid = cred.user.uid;
     const FIXED_NAME = nama.trim().toUpperCase();
 
-    // Kunci nama HANYA jika bukan tester
+    // 🔒 Klaim nama (kecuali tester)
     if (!isTester) {
-      const nameRef = doc(db, "names", FIXED_NAME);
+      const nameRef = doc(db, ...APP_ROOT, "claimed_names", FIXED_NAME);
 
       await runTransaction(db, async (tx) => {
         const snap = await tx.get(nameRef);
-        const data = snap.exists() ? snap.data() : null;
-
-        if (data?.claimedBy && data.claimedBy !== uid) {
-          throw new Error("Nama sudah digunakan");
+        if (snap.exists()) {
+          throw new Error("taken");
         }
-
-        tx.set(
-          nameRef,
-          {
-            claimedBy: uid,
-            role,
-            claimedAt: serverTimestamp()
-          },
-          { merge: true }
-        );
+        tx.set(nameRef, {
+          claimedBy: uid,
+          role,
+          createdAt: serverTimestamp()
+        });
       });
     }
 
-    // Simpan profil user (dashboard & audit)
+    // 👤 Simpan profil user
     await setDoc(
-      doc(db, "users", uid),
+      doc(db, ...APP_ROOT, "users", uid),
       {
-        nama: FIXED_NAME,
+        name: FIXED_NAME,
         role,
         isTester,
-        lastLogin: new Date().toISOString()
+        lastLogin: serverTimestamp()
       },
       { merge: true }
     );
 
-    // ✅ SINGLE SOURCE OF TRUTH (LOCAL)
+    // 🧠 Context lokal
     localStorage.setItem("userName", FIXED_NAME);
     localStorage.setItem("userRole", role);
     localStorage.setItem("isTester", String(isTester));
@@ -112,11 +102,11 @@ export async function loginWithName(nama, role, isTester = false) {
 }
 
 /* =========================
-   CONTEXT HELPER (PENTING)
+   CONTEXT HELPER
 ========================= */
 export function getCurrentUserContext() {
   return {
-    name: (localStorage.getItem("userName") || "").toUpperCase(),
+    name: localStorage.getItem("userName"),
     role: localStorage.getItem("userRole"),
     isTester: localStorage.getItem("isTester") === "true",
     uid: localStorage.getItem("userUid")
@@ -124,27 +114,25 @@ export function getCurrentUserContext() {
 }
 
 /* =========================
-   SUBSCRIBE NAMES (OPTIONAL)
+   SUBSCRIBE CLAIMED NAMES
+   (LOGIN PAGE)
 ========================= */
-export function subscribeNames(onChange) {
-  const col = collection(db, "names");
-  return onSnapshot(col, (snap) => {
+export async function subscribeNames(onChange) {
+  await authReady;
+
+  const colRef = collection(db, ...APP_ROOT, "claimed_names");
+  return onSnapshot(colRef, (snap) => {
     const data = {};
-    snap.forEach((d) => {
-      data[d.id] = d.data();
-    });
+    snap.forEach((d) => (data[d.id] = d.data()));
     onChange(data);
   });
 }
 
 /* =========================
-   LOGOUT (AMAN)
+   LOGOUT
 ========================= */
 export async function logout() {
-  try {
-    await signOut(auth);
-  } finally {
-    localStorage.clear();
-    window.location.href = "index.html";
-  }
+  await signOut(auth);
+  localStorage.clear();
+  window.location.href = "index.html";
 }
