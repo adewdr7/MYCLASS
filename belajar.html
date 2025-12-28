@@ -17,6 +17,11 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 10px; }
+.story-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+  margin: 2rem 0;
+}
     </style>
 </head>
 <body class="p-5 md:p-10">
@@ -195,31 +200,71 @@ saveLearningHistory(item);
     // --- LOGIKA ADAPTIF ---
     if (item.tipe === 'storytelling') {
         // TAMPILAN KHUSUS STORYTELLING (Data dari buatmateri-story.html)
-     const scenes = item.narasi.split('\n\n');
+     // === STORYTELLING TERSTRUKTUR ===
+const scenes = item.narasi.split('\n\n');
+
+// STRUKTUR CERITA
+const opening = scenes.shift(); // paragraf pertama = pembuka
+const closing = scenes.length > 0 ? scenes.pop() : null; // terakhir = penutup
+
 contentBox.innerHTML = `
-  <div class="grid grid-cols-2 gap-3 mb-6">
-    <div class="bg-white/5 p-3 rounded-xl border border-white/10">
-      <p class="text-[10px] font-black text-pink-400 uppercase">Karakter</p>
+  <!-- INFO TOKOH & LATAR -->
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+      <p class="text-[10px] font-black text-pink-400 uppercase mb-1">Tokoh Utama</p>
       <p class="text-sm font-bold">${item.karakter || '-'}</p>
     </div>
-    <div class="bg-white/5 p-3 rounded-xl border border-white/10">
-      <p class="text-[10px] font-black text-purple-400 uppercase">Latar</p>
+    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+      <p class="text-[10px] font-black text-purple-400 uppercase mb-1">Latar Cerita</p>
       <p class="text-sm font-bold">${item.setting || '-'}</p>
     </div>
   </div>
 
-  ${scenes.map(scene => `
-    <div class="mb-5 p-4 rounded-2xl bg-white/5 border border-white/10">
-      <p class="leading-relaxed text-slate-100 text-[15px] whitespace-pre-wrap">
-        ${scene}
+  <!-- PEMBUKA CERITA -->
+  ${opening ? `
+    <div class="mb-10 p-6 rounded-3xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+      <p class="text-xs font-black uppercase text-pink-400 mb-2">Pembuka Cerita</p>
+      <p class="text-lg leading-relaxed font-semibold text-slate-100 whitespace-pre-wrap">
+        ${opening}
       </p>
     </div>
-  `).join('')}
+  ` : ''}
 
+  <!-- ISI CERITA -->
+ ${scenes.map((scene, index) => `
+  <div class="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
+    <p class="text-[10px] font-black uppercase text-slate-400 mb-2">
+      Bagian ${index + 1}
+    </p>
+    <p class="leading-relaxed text-slate-100 text-[15px] whitespace-pre-wrap">
+      ${scene}
+    </p>
+  </div>
+
+  ${
+    index !== scenes.length - 1
+      ? `<div class="story-divider"></div>`
+      : ''
+  }
+`).join('')}
+
+  <!-- PENUTUP CERITA -->
+  ${closing ? `
+    <div class="mt-10 p-6 rounded-3xl bg-white/10 border border-white/20">
+      <p class="text-xs font-black uppercase text-cyan-400 mb-2">Akhir Cerita</p>
+      <p class="italic text-slate-200 text-lg leading-relaxed whitespace-pre-wrap">
+        ${closing}
+      </p>
+    </div>
+  ` : ''}
+
+  <!-- PESAN MORAL -->
   ${item.moral ? `
-    <div class="mt-8 p-5 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-      <p class="text-xs font-black text-pink-400 uppercase mb-1">Pesan Moral</p>
-      <p class="italic text-slate-200 text-sm">${item.moral}</p>
+    <div class="mt-10 p-6 rounded-3xl bg-gradient-to-br from-yellow-400/10 to-orange-500/10 border border-yellow-500/20">
+      <p class="text-xs font-black uppercase text-yellow-400 mb-2">Pesan Moral</p>
+      <p class="italic text-slate-100 text-base">
+        ${item.moral}
+      </p>
     </div>
   ` : ''}
 `;
@@ -289,6 +334,7 @@ contentBox.innerHTML = `
     </script>
 </body>
 </html>
+
 
 
 
