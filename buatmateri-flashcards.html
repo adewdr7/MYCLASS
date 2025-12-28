@@ -21,7 +21,10 @@
         .flashcard-flipped { transform: rotateY(180deg); }
         .flashcard-front, .flashcard-back { backface-visibility: hidden; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .flashcard-back { transform: rotateY(180deg); }
-    </style>
+    .perspective-1000 {
+    perspective: 1000px;
+}
+</style>
 </head>
 <body class="p-5 md:p-10">
     <!-- Navigasi -->
@@ -269,10 +272,21 @@ document.getElementById('btn-add-card').onclick = () => {
 
 // Preview Navigation
 function updateLivePreview() {
-    const card = flashcards[currentPreviewIndex] || {front: "", back: ""};
-    document.getElementById('preview-front-text').innerText = card.front || "Ketik pertanyaan...";
-    document.getElementById('preview-back-text').innerText = card.back || "Ketik jawaban...";
-    document.getElementById('preview-card-count').innerText = `KARTU ${currentPreviewIndex + 1} DARI ${flashcards.length}`;
+    const card = flashcards[currentPreviewIndex] || { front: "", back: "" };
+
+    document.getElementById('preview-front-text').innerText =
+        card.front || "Ketik pertanyaan...";
+
+    document.getElementById('preview-back-text').innerText =
+        card.back || "Ketik jawaban...";
+
+    document.getElementById('preview-card-count').innerText =
+        `KARTU ${currentPreviewIndex + 1} DARI ${flashcards.length}`;
+
+    // 🔴 PENTING: setiap ganti kartu / update teks → balik ke sisi depan
+    document
+        .getElementById('preview-card-inner')
+        .classList.remove('flashcard-flipped');
 }
 
 document.getElementById('prev-preview').onclick = (e) => {
