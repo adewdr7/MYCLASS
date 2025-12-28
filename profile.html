@@ -236,18 +236,29 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     }
 
     container.innerHTML = data.map(item => {
-        // Cek apakah tipe materi adalah storytelling
-        const isStory = item.tipe === 'storytelling';
-        const typeIcon = isStory ? 'sparkles' : 'book-open';
-        const typeLabel = isStory ? 'Storytelling' : 'Materi Standar';
-        const badgeClass = isStory ? 'badge-story text-white' : 'bg-cyan-500/10 text-cyan-400';
-        const borderClass = isStory ? 'border-l-purple-500' : 'border-l-cyan-500';
+        // --- LOGIKA PENENTUAN TIPE ---
+        let typeIcon = 'book-open';
+        let typeLabel = 'Materi Standar';
+        let badgeClass = 'bg-cyan-500/10 text-cyan-400';
+        let borderClass = 'border-l-cyan-500';
+
+        if (item.tipe === 'storytelling') {
+            typeIcon = 'sparkles';
+            typeLabel = 'Storytelling';
+            badgeClass = 'badge-story text-white';
+            borderClass = 'border-l-purple-500';
+        } else if (item.tipe === 'flashcards') {
+            typeIcon = 'layers'; // Ikon tumpukan kartu
+            typeLabel = 'Flashcards';
+            badgeClass = 'bg-amber-500/10 text-amber-500';
+            borderClass = 'border-l-amber-500';
+        }
 
         return `
             <div class="history-item glass flex items-center justify-between p-5 rounded-3xl border border-white/5 border-l-4 ${borderClass} group">
                 <div class="flex items-center gap-5">
                     <input type="checkbox" data-id="${item.id}" class="checkbox-custom">
-                    <div class="w-10 h-10 rounded-xl ${isStory ? 'bg-purple-500/10 text-purple-400' : 'bg-cyan-500/10 text-cyan-400'} flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl ${badgeClass.split(' ')[0]} flex items-center justify-center">
                         <i data-lucide="${typeIcon}" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -272,7 +283,6 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     }).join('');
     lucide.createIcons();
 }
-
 
         // --- MURID VIEW (BELAJAR & STORYTELLING) ---
         function setupMuridView(currentUid) {
@@ -397,6 +407,7 @@ window.onload = init;
     </script>
 </body>
 </html>
+
 
 
 
