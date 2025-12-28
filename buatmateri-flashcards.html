@@ -112,22 +112,33 @@
                 </h2>
                 
                 <div id="preview-area" class="flex flex-col items-center">
-                    <div id="preview-card-count" class="text-[10px] font-black text-slate-600 mb-4 uppercase tracking-[0.2em]">KARTU 1 DARI 1</div>
-                    
-                    <div class="w-72 h-44 perspective-1000 group">
-                        <div id="preview-card-inner" class="flashcard-inner w-full h-full relative rounded-3xl border border-white/10 glass">
-                            <div class="flashcard-front flex flex-col items-center justify-center p-6 text-center">
-                                <span class="text-[10px] uppercase font-bold text-amber-500/50 absolute top-4">PERTANYAAN</span>
-                                <p id="preview-front-text" class="text-xl font-bold italic tracking-tight">Ketik pertanyaan...</p>
-                            </div>
-                            <div class="flashcard-back flex flex-col items-center justify-center p-6 text-center bg-amber-500/10">
-                                <span class="text-[10px] uppercase font-bold text-amber-500 absolute top-4">JAWABAN</span>
-                                <p id="preview-back-text" class="text-xl font-bold text-amber-400">Ketik jawaban...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-500 mt-6 animate-pulse uppercase tracking-widest font-bold italic">Ketuk kartu di atas untuk membalik</p>
+    <div id="preview-card-count" class="text-[10px] font-black text-slate-600 mb-4 uppercase tracking-[0.2em]">KARTU 1 DARI 1</div>
+    
+    <div class="flex items-center gap-6">
+        <button type="button" id="prev-preview" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:text-amber-400 transition-colors">
+            <i data-lucide="chevron-left"></i>
+        </button>
+
+        <div class="w-72 h-44 perspective-1000 group">
+            <div id="preview-card-inner" class="flashcard-inner w-full h-full relative rounded-3xl border border-white/10 glass">
+                <div class="flashcard-front flex flex-col items-center justify-center p-6 text-center">
+                    <span class="text-[10px] uppercase font-bold text-amber-500/50 absolute top-4 tracking-widest">Sisi Depan</span>
+                    <p id="preview-front-text" class="text-xl font-bold italic tracking-tight">Ketik pertanyaan...</p>
                 </div>
+                <div class="flashcard-back flex flex-col items-center justify-center p-6 text-center bg-amber-500/10">
+                    <span class="text-[10px] uppercase font-bold text-amber-500 absolute top-4 tracking-widest">Sisi Belakang</span>
+                    <p id="preview-back-text" class="text-xl font-bold text-amber-400">Ketik jawaban...</p>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" id="next-preview" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:text-amber-400 transition-colors">
+            <i data-lucide="chevron-right"></i>
+        </button>
+    </div>
+    
+    <p class="text-[10px] text-slate-500 mt-6 animate-pulse uppercase tracking-widest font-bold italic">Klik kartu untuk melihat jawaban</p>
+</div>
             </div>
         </div>
     </div>
@@ -163,6 +174,7 @@ if (isTester && savedTester) currentAuthor = savedTester;
 /* =========================
    FLASHCARD MANAGEMENT
 ========================= */
+let currentPreviewIndex = 0;
 let flashcards = [{ front: "", back: "" }];
 
 function renderCardInputs() {
@@ -217,10 +229,17 @@ window.removeCard = (index) => {
     renderCardInputs();
 };
 
+// Di dalam script type="module" file buatmateri-flashcards.html
+
 document.getElementById('btn-add-card').addEventListener('click', () => {
+    if (flashcards.length >= 10) {
+        alert("Maksimal hanya 10 kartu dalam satu set.");
+        return;
+    }
     flashcards.push({ front: "", back: "" });
     renderCardInputs();
 });
+
 
 /* =========================
    UI HELPERS
@@ -237,42 +256,39 @@ function updateMapel(name) {
 }
 
 function updateLivePreview() {
-    const activeIdx = 0; // Pratinjau selalu kartu pertama yang sedang diketik
-    const card = flashcards[activeIdx];
+    // Pastikan index tidak out of bounds
+    if (currentPreviewIndex >= flashcards.length) currentPreviewIndex = flashcards.length - 1;
+    if (currentPreviewIndex < 0) currentPreviewIndex = 0;
+
+    const card = flashcards[currentPreviewIndex];
     
+    // Update Teks
     document.getElementById('preview-front-text').innerText = card.front || "Ketik pertanyaan...";
     document.getElementById('preview-back-text').innerText = card.back || "Ketik jawaban...";
-    document.getElementById('preview-card-count').innerText = `KARTU 1 DARI ${flashcards.length}`;
+    
+    // Update Counter
+    document.getElementById('preview-card-count').innerText = `KARTU ${currentPreviewIndex + 1} DARI ${flashcards.length}`;
 }
 
-/* =========================
-   INIT & EVENT LISTENERS
-========================= */
-window.addEventListener('DOMContentLoaded', () => {
-    if (isTester) {
-        document.getElementById('tester-panel').classList.remove('hidden');
-        const tSel = document.getElementById('tester-identity-select');
-        tSel.value = currentAuthor;
-        tSel.onchange = e => {
-            currentAuthor = e.target.value.toUpperCase();
-            sessionStorage.setItem("active_tester_name", currentAuthor);
-            document.getElementById('display-author').innerText = currentAuthor;
-            updateMapel(currentAuthor);
-        };
+// Tambahkan di dalam window.addEventListener('DOMContentLoaded', ...)
+document.getElementById('prev-preview').onclick = () => {
+    if (currentPreviewIndex > 0) {
+        currentPreviewIndex--;
+        // Reset flip ke depan saat ganti kartu
+        document.getElementById('preview-card-inner').classList.remove('flashcard-flipped');
+        updateLivePreview();
     }
+};
 
-    document.getElementById('display-author').innerText = currentAuthor;
-    updateMapel(currentAuthor);
-    renderCardInputs();
+document.getElementById('next-preview').onclick = () => {
+    if (currentPreviewIndex < flashcards.length - 1) {
+        currentPreviewIndex++;
+        // Reset flip ke depan saat ganti kartu
+        document.getElementById('preview-card-inner').classList.remove('flashcard-flipped');
+        updateLivePreview();
+    }
+};
 
-    // Preview click to flip
-    const previewInner = document.getElementById('preview-card-inner');
-    previewInner.addEventListener('click', () => {
-        previewInner.classList.toggle('flashcard-flipped');
-    });
-
-    lucide.createIcons();
-});
 
 /* =========================
    SUBMIT
@@ -327,4 +343,5 @@ document.getElementById('flashcard-form').onsubmit = async (e) => {
 </script>
 </body>
 </html>
+
 
