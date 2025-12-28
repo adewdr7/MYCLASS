@@ -207,12 +207,16 @@ inputs.forEach(id => {
 });
 
 window.updatePreview = function() {
-    // Sync Teks
-    document.getElementById('preview-display-title').innerText = document.getElementById('judul').value || "JUDUL PRATINJAU";
-    document.getElementById('preview-mapel-tag').innerText = document.getElementById('mapel-select').value || "MAPEL";
-    document.getElementById('preview-display-content').innerText = document.getElementById('konten').value || "Konten pratinjau akan muncul di sini...";
+    // Sync Teks - Gunakan value agar tidak error
+    const judulVal = document.getElementById('judul').value;
+    const mapelVal = document.getElementById('mapel-select').value;
+    const kontenVal = document.getElementById('konten').value;
+
+    document.getElementById('preview-display-title').innerText = judulVal || "JUDUL PRATINJAU";
+    document.getElementById('preview-mapel-tag').innerText = mapelVal || "MAPEL";
+    document.getElementById('preview-display-content').innerText = kontenVal || "Konten pratinjau akan muncul di sini...";
     
-    // Sync Media (Gambar/Video)
+    // Sync Media
     const mediaUrl = document.getElementById('media-url').value;
     const mediaType = document.getElementById('media-type').value;
     const previewMediaBox = document.getElementById('preview-display-media');
@@ -226,6 +230,10 @@ window.updatePreview = function() {
         }
     } else {
         previewMediaBox.classList.add('hidden');
+        previewMediaBox.innerHTML = ''; // Bersihkan isi pratinjau media
+    }
+} else {
+        previewMediaBox.classList.add('hidden');
     }
 }
 
@@ -235,23 +243,27 @@ window.updatePreview = function() {
 
 // ===== LOGIKA HAPUS MEDIA =====
 const removeBtn = document.getElementById('btn-remove-media');
-removeBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Mencegah widget upload terbuka kembali saat tombol hapus diklik
-    
-    // 1. Kosongkan nilai input hidden
-    document.getElementById('media-url').value = "";
-    document.getElementById('media-type').value = "";
-    
-    // 2. Kembalikan UI tombol upload
-    document.getElementById('preview-info').classList.add('hidden');
-    document.getElementById('upload-prompt').classList.remove('hidden');
-    // 3. Update pratinjau (Live Preview) agar media hilang
-    if (typeof updatePreview === "function") {
-        window.updatePreview();
-    }
-});
-});
-
+if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+        // PENTING: Mencegah event "naik" ke parent (btn-upload) 
+        // dan mencegah aksi default
+        e.stopPropagation(); 
+        e.preventDefault(); 
+        
+        // 1. Kosongkan nilai input hidden
+        document.getElementById('media-url').value = "";
+        document.getElementById('media-type').value = "";
+        
+        // 2. Kembalikan UI tombol upload
+        document.getElementById('preview-info').classList.add('hidden');
+        document.getElementById('upload-prompt').classList.remove('hidden');
+        
+        // 3. Update pratinjau agar media hilang (Gunakan window.)
+        if (typeof window.updatePreview === "function") {
+            window.updatePreview();
+        }
+    });
+}
 // ===============================
 // CLOUDINARY UPLOAD (BUAT MATERI)
 // ===============================
