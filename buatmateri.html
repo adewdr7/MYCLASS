@@ -328,49 +328,52 @@ document.getElementById('materi-form').onsubmit = async (e) => {
   btn.innerText = "SINKRONISASI...";
 
   try {
-    const { uid } = getCurrentUserContext();
-    if (!uid) throw new Error("UID tidak ditemukan");
+  const { uid } = getCurrentUserContext();
+  if (!uid) throw new Error("UID tidak ditemukan");
 
-    const timestamp = Date.now();
+  const timestamp = Date.now();
 
-    const materiData = {
+  const materiData = {
+    tipe: "belajar",
+    judul: document.getElementById('judul').value,
+    mapel: document.getElementById('mapel-select').value,
+    deskripsi: document.getElementById('deskripsi').value,
+    konten: document.getElementById('konten').value,
+    media: document.getElementById('media-url').value || "",
+    mediaType: document.getElementById('media-type').value || "none",
+    author: currentAuthor,
+    createdAt: timestamp
+  };
+
+  await addDoc(
+    collection(db, 'artifacts', appId, 'public', 'data', 'materi'),
+    materiData
+  );
+
+  await addDoc(
+    collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
+    {
+      judulMateri: materiData.judul,
       tipe: "belajar",
-      judul: document.getElementById('judul').value,
-      mapel: document.getElementById('mapel-select').value,
-      deskripsi: document.getElementById('deskripsi').value,
-      konten: document.getElementById('konten').value,
-      media: document.getElementById('media-url').value || "",
-      mediaType: document.getElementById('media-type').value || "none",
-      author: currentAuthor,
-      createdAt: timestamp
-    };
+      mapel: materiData.mapel,
+      lastAccessed: timestamp
+    }
+  );
 
-    // 1️⃣ Database Publik
-    await addDoc(
-      collection(db, 'artifacts', appId, 'public', 'data', 'materi'),
-      materiData
-    );
+  // ✅ NOTIFIKASI SUKSES
+  document.getElementById('toast').classList.remove('hidden');
 
-    // 2️⃣ Riwayat Profil (dibaca profile.html)
-    await addDoc(
-      collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
-      {
-        judulMateri: materiData.judul,
-        tipe: "belajar",
-        mapel: materiData.mapel,
-        lastAccessed: timestamp
-      }
-    );
+  // ⏳ DELAY REDIRECT
+  setTimeout(() => {
+    location.href = "profile.html";
+  }, 1800);
 
-    location.href = "dashboard.html";
-
-  } catch (err) {
-    console.error(err);
-    alert("Gagal menyimpan materi");
-    btn.disabled = false;
-    btn.innerText = "PUBLIKASIKAN";
-  }
-};
+} catch (err) {
+  console.error(err);
+  alert("Gagal menyimpan materi");
+  btn.disabled = false;
+  btn.innerText = "PUBLIKASIKAN";
+}
 </script>
 </body>
 </html>
