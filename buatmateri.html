@@ -320,6 +320,9 @@ if (uploadBtn) {
 /* =========================
    SUBMIT FORM
 ========================= */
+/* =========================
+   SUBMIT FORM (FINAL AMAN)
+========================= */
 document.getElementById('materi-form').onsubmit = async (e) => {
   e.preventDefault();
 
@@ -328,52 +331,57 @@ document.getElementById('materi-form').onsubmit = async (e) => {
   btn.innerText = "SINKRONISASI...";
 
   try {
-  const { uid } = getCurrentUserContext();
-  if (!uid) throw new Error("UID tidak ditemukan");
+    // ✅ PAKAI CONTEXT YANG SUDAH ADA
+    const ctx = getCurrentUserContext();
+    if (!ctx || !ctx.uid) throw new Error("User context tidak valid");
 
-  const timestamp = Date.now();
+    const uid = ctx.uid;
+    const timestamp = Date.now();
 
-  const materiData = {
-    tipe: "belajar",
-    judul: document.getElementById('judul').value,
-    mapel: document.getElementById('mapel-select').value,
-    deskripsi: document.getElementById('deskripsi').value,
-    konten: document.getElementById('konten').value,
-    media: document.getElementById('media-url').value || "",
-    mediaType: document.getElementById('media-type').value || "none",
-    author: currentAuthor,
-    createdAt: timestamp
-  };
-
-  await addDoc(
-    collection(db, 'artifacts', appId, 'public', 'data', 'materi'),
-    materiData
-  );
-
-  await addDoc(
-    collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
-    {
-      judulMateri: materiData.judul,
+    const materiData = {
       tipe: "belajar",
-      mapel: materiData.mapel,
-      lastAccessed: timestamp
-    }
-  );
+      judul: document.getElementById('judul').value,
+      mapel: document.getElementById('mapel-select').value,
+      deskripsi: document.getElementById('deskripsi').value,
+      konten: document.getElementById('konten').value,
+      media: document.getElementById('media-url').value || "",
+      mediaType: document.getElementById('media-type').value || "none",
+      author: currentAuthor,
+      createdAt: timestamp
+    };
 
-  // ✅ NOTIFIKASI SUKSES
-  document.getElementById('toast').classList.remove('hidden');
+    // 1️⃣ PUBLIK
+    await addDoc(
+      collection(db, 'artifacts', appId, 'public', 'data', 'materi'),
+      materiData
+    );
 
-  // ⏳ DELAY REDIRECT
-  setTimeout(() => {
-    location.href = "profile.html";
-  }, 1800);
+    // 2️⃣ PROFIL
+    await addDoc(
+      collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
+      {
+        judulMateri: materiData.judul,
+        tipe: "belajar",
+        mapel: materiData.mapel,
+        lastAccessed: timestamp
+      }
+    );
 
-} catch (err) {
-  console.error(err);
-  alert("Gagal menyimpan materi");
-  btn.disabled = false;
-  btn.innerText = "PUBLIKASIKAN";
-}
+    // ✅ TOAST
+    document.getElementById('toast').classList.remove('hidden');
+
+    // ✅ REDIRECT AMAN
+    setTimeout(() => {
+      location.href = "profile.html";
+    }, 1800);
+
+  } catch (err) {
+    console.error("SUBMIT ERROR:", err);
+    alert("Gagal menyimpan materi");
+    btn.disabled = false;
+    btn.innerText = "PUBLIKASIKAN";
+  }
+};
 </script>
 </body>
 </html>
