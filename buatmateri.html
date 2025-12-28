@@ -316,68 +316,73 @@ if (uploadBtn) {
     );
   });
 }
-
 /* =========================
-   SUBMIT FORM
-========================= */
-/* =========================
-   SUBMIT FORM (FINAL AMAN)
+   SUBMIT FORM (PERBAIKAN)
 ========================= */
 document.getElementById('materi-form').onsubmit = async (e) => {
   e.preventDefault();
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
-  btn.innerText = "SINKRONISASI...";
+  btn.innerHTML = `<span class="animate-pulse">SINKRONISASI...</span>`;
 
   try {
-    // ✅ PAKAI CONTEXT YANG SUDAH ADA
+    // 1. Ambil context user terbaru
     const ctx = getCurrentUserContext();
-    if (!ctx || !ctx.uid) throw new Error("User context tidak valid");
+    if (!ctx || !ctx.uid) throw new Error("Sesi berakhir, silakan login ulang.");
 
-    const uid = ctx.uid;
     const timestamp = Date.now();
+    const mapelValue = document.getElementById('mapel-select').value;
+    const judulValue = document.getElementById('judul').value;
+
+    // Pastikan author sesuai dengan yang ada di localStorage agar filter di profile.html cocok
+    // Profile.html menggunakan getCurrentUserContext().name
+    const finalAuthor = isTester ? currentAuthor : ctx.name;
 
     const materiData = {
       tipe: "belajar",
-      judul: document.getElementById('judul').value,
-      mapel: document.getElementById('mapel-select').value,
+      judul: judulValue,
+      mapel: mapelValue,
       deskripsi: document.getElementById('deskripsi').value,
       konten: document.getElementById('konten').value,
       media: document.getElementById('media-url').value || "",
       mediaType: document.getElementById('media-type').value || "none",
-      author: currentAuthor,
+      author: finalAuthor, // Penting: Harus sama persis dengan 'name' di profile.html
       createdAt: timestamp
     };
 
-    // 1️⃣ PUBLIK
+    // 2. Simpan ke koleksi PUBLIK (Agar bisa dilihat semua orang / filter admin)
+    // Jalur ini harus persis dengan yang di-query oleh profile.html line 192
     await addDoc(
       collection(db, 'artifacts', appId, 'public', 'data', 'materi'),
       materiData
     );
 
-    // 2️⃣ PROFIL
+    // 3. Simpan ke RIWAYAT GURU (Opsional, agar muncul di list 'Selesai' jika ingin)
+    // Mengikuti struktur setupMuridView di profile.html
     await addDoc(
-      collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
+      collection(db, 'artifacts', appId, 'users', ctx.uid, 'history_belajar'),
       {
-        judulMateri: materiData.judul,
+        judulMateri: judulValue,
         tipe: "belajar",
-        mapel: materiData.mapel,
-        lastAccessed: timestamp
+        mapel: mapelValue,
+        lastAccessed: timestamp,
+        isStory: false
       }
     );
 
-    // ✅ TOAST
-    document.getElementById('toast').classList.remove('hidden');
+    // Tampilkan Toast Sukses
+    const toast = document.getElementById('toast');
+    toast.classList.remove('hidden');
+    toast.classList.add('flex');
 
-    // ✅ REDIRECT AMAN
     setTimeout(() => {
-      location.href = "profile.html";
-    }, 1800);
+      window.location.href = "profile.html";
+    }, 1500);
 
   } catch (err) {
     console.error("SUBMIT ERROR:", err);
-    alert("Gagal menyimpan materi");
+    alert("Gagal mempublikasikan: " + err.message);
     btn.disabled = false;
     btn.innerText = "PUBLIKASIKAN";
   }
