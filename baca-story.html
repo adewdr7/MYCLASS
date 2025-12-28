@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storytelling - Stellar Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
+        .glass { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .story-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); margin: 2rem 0; }
+    </style>
+</head>
+<body class="p-5 md:p-10">
+    <div class="max-w-4xl mx-auto pt-4 pb-20">
+        <a href="belajar.html" class="inline-flex items-center gap-2 text-slate-400 hover:text-pink-400 transition-colors mb-8 group">
+            <i data-lucide="chevron-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+            <span class="font-black uppercase tracking-widest text-[10px]">Kembali</span>
+        </a>
+
+        <div id="loading-spinner" class="text-center py-20">
+            <div class="animate-spin w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full mx-auto"></div>
+        </div>
+
+        <article id="content-area" class="space-y-8 hidden">
+            <header class="space-y-4 text-center">
+                <span class="text-[10px] font-black uppercase text-pink-400 bg-pink-500/10 px-4 py-2 rounded-full border border-pink-500/20 tracking-[0.3em]">Story Mode</span>
+                <h2 id="read-title" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none text-white pt-4">JUDUL CERITA</h2>
+                <p id="read-author" class="text-slate-500 text-xs font-bold uppercase tracking-widest italic pt-2">Oleh: Guru</p>
+            </header>
+
+            <div id="read-media" class="w-full rounded-[3rem] overflow-hidden border border-white/10 hidden"></div>
+
+            <div id="story-container" class="space-y-6">
+                <!-- Konten Story Injected Here -->
+            </div>
+
+            <div class="pt-10 flex flex-col items-center gap-6">
+                <button onclick="window.history.back()" class="px-16 py-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-pink-500/20">
+                    Selesai Petualangan
+                </button>
+            </div>
+        </article>
+    </div>
+
+    <script type="module">
+        import { db, auth } from './app.js';
+        import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const materiId = urlParams.get('id');
+        const appId = "sekolah-sdnwidarasari";
+
+        const loadStory = async () => {
+            if(!materiId) return window.location.href = 'belajar.html';
+            
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'materi', materiId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const item = docSnap.data();
+                document.getElementById('read-title').innerText = item.judul;
+                document.getElementById('read-author').innerText = `Oleh: ${item.author}`;
+
+                // Media
+                const mediaBox = document.getElementById('read-media');
+                if (item.media) {
+                    mediaBox.classList.remove('hidden');
+                    mediaBox.innerHTML = item.mediaType === 'video' 
+                        ? `<video src="${item.media}" controls class="w-full aspect-video bg-black"></video>`
+                        : `<img src="${item.media}" class="w-full h-auto"/>`;
+                }
+
+                // Story Logic
+                const scenes = item.narasi.split('\n\n');
+                const opening = scenes.shift();
+                const closing = scenes.length > 0 ? scenes.pop() : null;
+
+                document.getElementById('story-container').innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 mb-10">
+                        <div class="glass p-4 rounded-2xl"><p class="text-[9px] text-pink-400 font-black uppercase">Tokoh</p><p class="font-bold">${item.karakter || '-'}</p></div>
+                        <div class="glass p-4 rounded-2xl"><p class="text-[9px] text-purple-400 font-black uppercase">Latar</p><p class="font-bold">${item.setting || '-'}</p></div>
+                    </div>
+                    ${opening ? `<div class="p-8 rounded-[2.5rem] bg-gradient-to-br from-pink-500/10 to-transparent border border-pink-500/20 text-xl font-semibold leading-relaxed">${opening}</div>` : ''}
+                    ${scenes.map((s, i) => `<div class="glass p-8 rounded-[2rem] text-slate-300 leading-relaxed">${s}</div>${i < scenes.length-1 ? '<div class="story-divider"></div>' : ''}`).join('')}
+                    ${closing ? `<div class="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 italic text-slate-400 text-lg">${closing}</div>` : ''}
+                    ${item.moral ? `<div class="p-6 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 text-center"><p class="text-xs font-black text-yellow-500 uppercase mb-2">Pesan Moral</p><p class="italic text-yellow-100">${item.moral}</p></div>` : ''}
+                `;
+
+                document.getElementById('loading-spinner').classList.add('hidden');
+                document.getElementById('content-area').classList.remove('hidden');
+                lucide.createIcons();
+
+                // Simpan Riwayat
+                const user = auth.currentUser;
+                if(user && localStorage.getItem('userRole') === 'murid') {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'history_belajar', materiId), {
+                        judulMateri: item.judul,
+                        mapel: item.mapel,
+                        lastAccessed: new Date().toISOString(),
+                        status: "SELESAI"
+                    });
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', loadStory);
+    </script>
+</body>
+</html>
+
