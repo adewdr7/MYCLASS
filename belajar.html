@@ -35,14 +35,14 @@
         <!-- Filter Kontainer -->
         <div class="max-w-6xl mx-auto mb-10 overflow-x-auto pb-4 no-scrollbar">
             <div class="flex items-center gap-3" id="filter-container">
-                <button onclick="window.filterMateri('Semua')" class="category-pill active px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Semua</button>
-                <button onclick="window.filterMateri('Matematika')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Matematika</button>
-                <button onclick="window.filterMateri('Bahasa Sunda')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">B. Sunda</button>
-                <button onclick="window.filterMateri('Pendidikan Pancasila')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Pancasila</button>
-                <button onclick="window.filterMateri('Bahasa Indonesia')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">B. Indonesia</button>
-                <button onclick="window.filterMateri('Bahasa Inggris')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">B. Inggris</button>
-                <button onclick="window.filterMateri('PJOK')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">PJOK</button>
-                <button onclick="window.filterMateri('Agama Islam')" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Agama</button>
+                <button onclick="window.filterMateri('Semua', this)" class="category-pill active px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Semua</button>
+                <button onclick="window.filterMateri('Matematika', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Matematika</button>
+                <button onclick="window.filterMateri('Bahasa Sunda', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">B. Sunda</button>
+                <button onclick="window.filterMateri('Pendidikan Pancasila', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Pancasila</button>
+                <button onclick="window.filterMateri('Bahasa Indonesia', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">B. Indonesia</button>
+                <button onclick="window.filterMateri('Bahasa Inggris', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">B. Inggris</button>
+                <button onclick="window.filterMateri('PJOK', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">PJOK</button>
+                <button onclick="window.filterMateri('Agama Islam', this)" class="category-pill px-6 py-2.5 rounded-full border border-white/10 text-xs font-black uppercase tracking-widest whitespace-nowrap">Agama</button>
             </div>
         </div>
 
@@ -84,11 +84,30 @@
             lucide.createIcons();
         };
 
-        window.filterMateri = (cat) => {
+        // Fungsi filter yang diperbaiki
+        window.filterMateri = (cat, element) => {
             currentFilter = cat;
+            
+            // Menghapus kelas 'active' dari semua tombol
             document.querySelectorAll('.category-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText.includes(cat === 'Semua' ? 'Semua' : (cat === 'Agama Islam' ? 'Agama' : cat)));
+                btn.classList.remove('active');
             });
+
+            // Jika dipanggil dari klik tombol (memiliki parameter element), langsung aktifkan element tersebut
+            if (element) {
+                element.classList.add('active');
+            } else {
+                // Fallback untuk inisialisasi awal berdasarkan teks
+                document.querySelectorAll('.category-pill').forEach(btn => {
+                    const btnText = btn.innerText.toLowerCase();
+                    const filterText = cat.toLowerCase();
+                    if (filterText === 'semua' && btnText === 'semua') btn.classList.add('active');
+                    else if (filterText === 'agama islam' && btnText === 'agama') btn.classList.add('active');
+                    else if (filterText === 'bahasa sunda' && btnText === 'b. sunda') btn.classList.add('active');
+                    else if (btnText.includes(filterText)) btn.classList.add('active');
+                });
+            }
+
             const filtered = (cat === 'Semua') ? allMateri : allMateri.filter(m => m.mapel === cat);
             renderGrid(filtered);
         };
