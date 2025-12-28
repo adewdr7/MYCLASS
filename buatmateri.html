@@ -206,36 +206,42 @@ inputs.forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
 });
 
-window.updatePreview = function() {
-    // Sync Teks - Gunakan value agar tidak error
+// ===== LIVE PREVIEW FUNCTION (FIXED) =====
+window.updatePreview = function () {
     const judulVal = document.getElementById('judul').value;
     const mapelVal = document.getElementById('mapel-select').value;
     const kontenVal = document.getElementById('konten').value;
 
-    document.getElementById('preview-display-title').innerText = judulVal || "JUDUL PRATINJAU";
-    document.getElementById('preview-mapel-tag').innerText = mapelVal || "MAPEL";
-    document.getElementById('preview-display-content').innerText = kontenVal || "Konten pratinjau akan muncul di sini...";
-    
-    // Sync Media
+    document.getElementById('preview-display-title').innerText =
+        judulVal || "JUDUL PRATINJAU";
+
+    document.getElementById('preview-mapel-tag').innerText =
+        mapelVal || "MAPEL";
+
+    document.getElementById('preview-display-content').innerText =
+        kontenVal || "Konten pratinjau akan muncul di sini...";
+
     const mediaUrl = document.getElementById('media-url').value;
     const mediaType = document.getElementById('media-type').value;
     const previewMediaBox = document.getElementById('preview-display-media');
 
     if (mediaUrl) {
         previewMediaBox.classList.remove('hidden');
+
         if (mediaType === 'video') {
-            previewMediaBox.innerHTML = `<video src="${mediaUrl}" controls class="w-full aspect-video bg-black"></video>`;
+            previewMediaBox.innerHTML = `
+                <video src="${mediaUrl}" controls class="w-full aspect-video bg-black"></video>
+            `;
         } else {
-            previewMediaBox.innerHTML = `<img src="${mediaUrl}" class="w-full h-auto object-cover">`;
+            previewMediaBox.innerHTML = `
+                <img src="${mediaUrl}" class="w-full h-auto object-cover">
+            `;
         }
     } else {
         previewMediaBox.classList.add('hidden');
-        previewMediaBox.innerHTML = ''; // Bersihkan isi pratinjau media
+        previewMediaBox.innerHTML = "";
     }
-} else {
-        previewMediaBox.classList.add('hidden');
-    }
-}
+};
 
 // Panggil updatePreview di dalam callback sukses Cloudinary Anda
 // Tambahkan baris ini di dalam (err, res) => { if (res.event === "success") { ... } }
