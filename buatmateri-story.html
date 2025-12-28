@@ -389,7 +389,11 @@ document.getElementById('story-form').onsubmit = async (e) => {
       }
     );
 
-    location.href = "dashboard.html";
+    document.getElementById('toast').classList.remove('hidden');
+
+setTimeout(() => {
+  location.href = "profile.html";
+}, 1800);
   } catch (err) {
     console.error(err);
     alert("Gagal menyimpan storytelling");
