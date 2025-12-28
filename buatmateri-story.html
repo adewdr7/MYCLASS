@@ -340,40 +340,64 @@ window.addEventListener('DOMContentLoaded', () => {
     updatePreview();
 });
 
-// Submit
 document.getElementById('story-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btn-submit');
-    btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> MEMANCARKAN...`;
-    lucide.createIcons();
+  e.preventDefault();
 
-    try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
-            tipe: "storytelling",
-            judul: judul.value,
-            mapel: document.getElementById('mapel-select').value,
-            karakter: karakter.value,
-            setting: setting.value,
-            narasi: narasi.value,
-            moral: moral.value,
-            media: document.getElementById('media-url').value,
-            mediaType: document.getElementById('media-type').value,
-            author: currentAuthor,
-            createdAt: new Date().toISOString()
-        });
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = "MEMANCARKAN...";
 
-        document.getElementById('toast').classList.remove('hidden');
-        setTimeout(() => location.href = 'dashboard.html', 2000);
-    } catch (e) {
-        alert("Gagal simpan cerita: " + e.message);
-        btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> Publish Cerita`;
-        lucide.createIcons();
-    }
+  const { uid } = getCurrentUserContext();
+  if (!uid) {
+    alert("User tidak valid");
+    btn.disabled = false;
+    return;
+  }
+
+  const timestamp = Date.now();
+
+  const storyData = {
+    tipe: "storytelling",
+    judul: document.getElementById('judul').value,
+    mapel: document.getElementById('mapel-select').value,
+    karakter: document.getElementById('karakter').value,
+    setting: document.getElementById('setting').value,
+    narasi: document.getElementById('narasi').value,
+    moral: document.getElementById('moral').value,
+    media: document.getElementById('media-url').value || "",
+    mediaType: document.getElementById('media-type').value || "image",
+    author: document.getElementById('display-author').innerText,
+    createdAt: timestamp
+  };
+
+  try {
+    // 🔹 DATABASE PUBLIK
+    await addDoc(
+      collection(db, 'artifacts', appId, 'public', 'data', 'materi'),
+      storyData
+    );
+
+    // 🔹 DATABASE PROFIL USER
+    await addDoc(
+      collection(db, 'artifacts', appId, 'users', uid, 'history_belajar'),
+      {
+        judulMateri: storyData.judul,
+        tipe: "storytelling",
+        mapel: storyData.mapel,
+        isStory: true,
+        lastAccessed: timestamp
+      }
+    );
+
+    location.href = "dashboard.html";
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menyimpan storytelling");
+    btn.disabled = false;
+    btn.innerHTML = "Publish Cerita";
+  }
 };
 </script>
 </body>
 </html>
-
 
