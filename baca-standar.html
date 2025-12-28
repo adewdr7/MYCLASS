@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membaca Materi - Stellar Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
+        .glass { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="p-5 md:p-10">
+    <div id="view-read" class="max-w-4xl mx-auto pt-4 pb-20">
+        <a href="belajar.html" class="inline-flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-8 group">
+            <i data-lucide="chevron-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+            <span class="font-black uppercase tracking-widest text-[10px]">Kembali ke Katalog</span>
+        </a>
+
+        <div id="loading-spinner" class="text-center py-20">
+            <div class="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto"></div>
+        </div>
+
+        <article id="content-area" class="space-y-8 hidden">
+            <header class="space-y-4">
+                <span id="read-mapel" class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20 tracking-widest">MAPEL</span>
+                <h2 id="read-title" class="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-[0.9] text-white">JUDUL MATERI</h2>
+                <p id="read-author" class="text-slate-400 text-xs font-bold uppercase tracking-widest italic">Oleh: Nama Guru</p>
+            </header>
+
+            <div id="read-media" class="w-full rounded-[2.5rem] overflow-hidden bg-white/5 border border-white/10 shadow-2xl hidden"></div>
+
+            <div class="glass p-5 md:p-12 rounded-2xl md:rounded-[3rem] border-white/5 relative">
+                <div id="read-content" class="text-slate-200 whitespace-pre-wrap text-[15px] md:text-lg leading-relaxed font-medium"></div>
+            </div>
+            
+            <div class="pt-10 flex flex-col items-center gap-4">
+                <button onclick="window.history.back()" class="w-full md:w-auto px-12 py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl">
+                    Selesai Membaca
+                </button>
+            </div>
+        </article>
+    </div>
+
+    <script type="module">
+        import { db, auth } from './app.js';
+        import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const materiId = urlParams.get('id');
+        const appId = "sekolah-sdnwidarasari";
+
+        const loadMateri = async () => {
+            if(!materiId) return window.location.href = 'belajar.html';
+            
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'materi', materiId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const item = docSnap.data();
+                document.getElementById('read-title').innerText = item.judul;
+                document.getElementById('read-mapel').innerText = item.mapel;
+                document.getElementById('read-author').innerText = `Oleh: ${item.author}`;
+                document.getElementById('read-content').innerText = item.konten;
+
+                const mediaBox = document.getElementById('read-media');
+                if (item.media) {
+                    mediaBox.classList.remove('hidden');
+                    mediaBox.innerHTML = item.mediaType === 'video' 
+                        ? `<video src="${item.media}" controls class="w-full aspect-video bg-black"></video>`
+                        : `<img src="${item.media}" class="w-full h-auto object-cover"/>`;
+                }
+
+                document.getElementById('loading-spinner').classList.add('hidden');
+                document.getElementById('content-area').classList.remove('hidden');
+                lucide.createIcons();
+                
+                // Simpan Riwayat
+                const user = auth.currentUser;
+                if(user && localStorage.getItem('userRole') === 'murid') {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'history_belajar', materiId), {
+                        judulMateri: item.judul,
+                        mapel: item.mapel,
+                        lastAccessed: new Date().toISOString(),
+                        status: "SELESAI"
+                    });
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', loadMateri);
+    </script>
+</body>
+</html>
+
