@@ -40,7 +40,6 @@
             accent-color: #a855f7;
         }
 
-        /* Hide scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
@@ -74,126 +73,104 @@
                             <i data-lucide="user" class="w-16 h-16 text-purple-400"></i>
                         </div>
                     </div>
-                    <button class="absolute -bottom-2 -right-2 bg-white text-black p-2 rounded-xl shadow-xl hover:scale-110 transition-transform">
-                        <i data-lucide="camera" class="w-4 h-4"></i>
-                    </button>
                 </div>
                 
                 <div class="flex-1">
                     <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
-                        <h1 id="user-name" class="text-3xl font-bold italic">Memuat...</h1>
-                        <span id="user-role" class="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full border border-purple-500/30 tracking-widest uppercase">Admin</span>
+                        <h1 id="user-name" class="text-3xl font-bold italic text-white">Memuat...</h1>
+                        <span id="user-role" class="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full border border-purple-500/30 tracking-widest uppercase">Member</span>
                     </div>
-                    <p id="user-id" class="text-white/40 font-mono text-sm mb-6">ID: --</p>
+                    <p id="user-id-display" class="text-white/40 font-mono text-xs mb-6 truncate max-w-xs mx-auto md:mx-0">Memverifikasi Identitas...</p>
                     
                     <div class="flex flex-wrap justify-center md:justify-start gap-6">
                         <div class="text-center md:text-left">
                             <p class="text-xs text-white/40 uppercase tracking-tighter mb-1">Materi Dibuat</p>
                             <p id="count-materi" class="text-2xl font-bold">0</p>
                         </div>
-                        <div class="w-px h-10 bg-white/10 hidden md:block"></div>
-                        <div class="text-center md:text-left">
-                            <p class="text-xs text-white/40 uppercase tracking-tighter mb-1">Total Views</p>
-                            <p class="text-2xl font-bold">--</p>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab Navigasi & Action -->
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
             <h2 class="text-xl font-bold flex items-center gap-2">
                 <i data-lucide="database" class="w-5 h-5 text-purple-400"></i>
                 ARSIP TRANSMISI
             </h2>
-            <div class="flex gap-2">
-                <button id="btn-bulk-delete" class="px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-xl transition-all text-sm flex items-center gap-2">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih
-                </button>
-            </div>
+            <button id="btn-bulk-delete" class="px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-xl transition-all text-sm flex items-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih
+            </button>
         </div>
 
         <!-- List Konten -->
         <div id="materi-list" class="space-y-3">
-            <!-- Shimmer Loading -->
-            <div class="animate-pulse space-y-3">
-                <div class="h-20 bg-white/5 rounded-2xl"></div>
-                <div class="h-20 bg-white/5 rounded-2xl"></div>
+            <div class="text-center py-10 opacity-50">
+                <p class="text-sm">Menghubungkan ke database...</p>
             </div>
         </div>
     </main>
 
-    <!-- Modal Edit Sederhana -->
+    <!-- Modal Edit -->
     <div id="modal-edit" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
         <div class="relative glass max-w-lg w-full rounded-3xl p-8 border border-white/10">
             <h3 class="text-xl font-bold mb-6">Edit Transmisi</h3>
             <div class="space-y-4">
                 <div>
                     <label class="text-xs text-white/40 uppercase block mb-1">Judul</label>
-                    <input id="edit-title" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:outline-none focus:border-purple-500">
+                    <input id="edit-title" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500">
                 </div>
-                <div id="desc-container">
-                    <label class="text-xs text-white/40 uppercase block mb-1">Deskripsi / Narasi</label>
-                    <textarea id="edit-desc" rows="4" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:outline-none focus:border-purple-500"></textarea>
+                <div>
+                    <label class="text-xs text-white/40 uppercase block mb-1">Keterangan</label>
+                    <textarea id="edit-desc" rows="4" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500"></textarea>
                 </div>
                 <div class="flex gap-3 pt-4">
-                    <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all uppercase text-xs font-bold">Batal</button>
-                    <button id="btn-save-edit" class="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-600/20 transition-all uppercase text-xs font-bold">Simpan Perubahan</button>
+                    <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all uppercase text-xs font-bold text-white">Batal</button>
+                    <button id="btn-save-edit" class="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-600/20 transition-all uppercase text-xs font-bold text-white">Simpan</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { auth, db, getCurrentUserContext } from "./app.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { collection, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
+        // APP_ROOT sesuai app.js Anda
+        const APP_PATH = ["artifacts", "sekolah-sdnwidarasari"];
         let activeData = [];
-        let currentUser = null;
 
         async function init() {
-            const initAuth = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            };
-            await initAuth();
-
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    currentUser = user;
-                    document.getElementById('user-name').innerText = user.displayName || "Admin Stellar";
-                    document.getElementById('user-id').innerText = `ID: ${user.uid}`;
-                    loadMateri(user.uid, user.displayName);
+                    // Ambil konteks dari localStorage yang diatur oleh app.js login
+                    const ctx = getCurrentUserContext();
+                    
+                    document.getElementById('user-name').innerText = ctx.name || "User Stellar";
+                    document.getElementById('user-role').innerText = ctx.role || "Member";
+                    document.getElementById('user-id-display').innerText = `ID: ${ctx.uid}`;
+                    
+                    loadUserMateri(ctx.name, ctx.uid);
+                } else {
+                    window.location.href = "index.html";
                 }
             });
             lucide.createIcons();
         }
 
-        function loadMateri(uid, displayName) {
-            // Path: /artifacts/{appId}/public/data/materi
-            const q = collection(db, 'artifacts', appId, 'public', 'data', 'materi');
+        function loadUserMateri(userName, uid) {
+            // Path koleksi sesuai struktur app.js
+            const colRef = collection(db, ...APP_PATH, "public", "data", "materi");
             
-            onSnapshot(q, (snapshot) => {
+            onSnapshot(colRef, (snapshot) => {
                 const list = document.getElementById('materi-list');
                 const countDisplay = document.getElementById('count-materi');
                 
-                // Filter data berdasarkan author (nama atau uid sesuai logika submit Anda)
-                // Di file submit anda menggunakan author: currentAuthor
+                // Filter materi: Milik user berdasarkan nama pengirim (author)
                 activeData = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(item => item.author === displayName || item.author === uid);
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(item => item.author === userName);
 
                 countDisplay.innerText = activeData.length;
 
@@ -201,7 +178,7 @@
                     list.innerHTML = `
                         <div class="text-center py-20 opacity-30">
                             <i data-lucide="package-open" class="w-12 h-12 mx-auto mb-4"></i>
-                            <p>Belum ada transmisi data yang dibuat.</p>
+                            <p>Anda belum memancarkan materi ke sistem.</p>
                         </div>
                     `;
                 } else {
@@ -214,17 +191,17 @@
                                        class="w-6 h-6 ${item.tipe === 'storytelling' ? 'text-pink-400' : 'text-cyan-400'}"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <h4 class="font-bold text-sm mb-0.5 line-clamp-1">${item.judul}</h4>
+                                    <h4 class="font-bold text-sm mb-0.5 line-clamp-1">${item.judul || 'Tanpa Judul'}</h4>
                                     <div class="flex items-center gap-3 text-[10px] text-white/40 uppercase tracking-widest">
                                         <span>${item.mapel || 'UMUM'}</span>
                                         <span>•</span>
-                                        <span>${new Date(item.createdAt).toLocaleDateString('id-ID')}</span>
-                                        ${item.tipe === 'storytelling' ? '<span class="text-pink-500/60 font-black">[STORY]</span>' : ''}
+                                        <span>${item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : 'N/A'}</span>
+                                        ${item.tipe === 'storytelling' ? '<span class="text-pink-500 font-bold">[STORY]</span>' : ''}
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onclick="editMateri('${item.id}')" class="p-2 hover:bg-white/10 rounded-lg text-white/60">
+                                <button onclick="editItem('${item.id}')" class="p-2 hover:bg-white/10 rounded-lg text-white/60">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </button>
                                 <button onclick="deleteSingle('${item.id}')" class="p-2 hover:bg-red-500/20 rounded-lg text-red-500">
@@ -235,44 +212,38 @@
                     `).join('');
                 }
                 lucide.createIcons();
-            }, (error) => {
-                console.error("Firestore Error:", error);
             });
         }
 
         window.deleteSingle = async (id) => {
-            if (confirm("Hapus materi ini selamanya?")) {
+            if (confirm("Hapus data ini?")) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', id));
+                    await deleteDoc(doc(db, ...APP_PATH, "public", "data", "materi", id));
                 } catch (e) { console.error(e); }
             }
         };
 
-        window.editMateri = (id) => {
+        window.editItem = (id) => {
             const item = activeData.find(d => d.id === id);
             if (!item) return;
             
-            document.getElementById('edit-title').value = item.judul;
-            // Handle beda field antara materi (deskripsi) dan story (narasi)
+            document.getElementById('edit-title').value = item.judul || "";
             document.getElementById('edit-desc').value = item.deskripsi || item.narasi || "";
             
             document.getElementById('modal-edit').classList.remove('hidden');
             
             document.getElementById('btn-save-edit').onclick = async () => {
-                const updateObj = {
-                    judul: document.getElementById('edit-title').value
-                };
-                
+                const updateData = { judul: document.getElementById('edit-title').value };
                 if (item.tipe === 'storytelling') {
-                    updateObj.narasi = document.getElementById('edit-desc').value;
+                    updateData.narasi = document.getElementById('edit-desc').value;
                 } else {
-                    updateObj.deskripsi = document.getElementById('edit-desc').value;
+                    updateData.deskripsi = document.getElementById('edit-desc').value;
                 }
 
                 try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', id), updateObj);
+                    await updateDoc(doc(db, ...APP_PATH, "public", "data", "materi", id), updateData);
                     closeModal();
-                } catch (e) { alert("Gagal update data"); }
+                } catch (e) { alert("Gagal memperbarui"); }
             };
         };
 
@@ -280,11 +251,9 @@
             const checked = document.querySelectorAll('.checkbox-custom:checked');
             if (!checked.length) return;
             
-            if (confirm(`Hapus ${checked.length} transmisi terpilih?`)) {
+            if (confirm(`Hapus ${checked.length} data terpilih?`)) {
                 for (const cb of checked) {
-                    try {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', cb.dataset.id));
-                    } catch (e) { console.error(e); }
+                    await deleteDoc(doc(db, ...APP_PATH, "public", "data", "materi", cb.dataset.id));
                 }
             }
         };
