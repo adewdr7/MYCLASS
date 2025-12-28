@@ -7,14 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Cloudinary SDK (HARUS DULU) -->
-<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 
-<!-- Config Cloudinary (GLOBAL) -->
-<script src="cloudinary-config.js"></script>
+    <!-- Config Cloudinary (Pastikan file ini tersedia) -->
+    <script src="cloudinary-config.js"></script>
 
-<!-- Baru script module -->
-<script type="module" src="app.js"></script>
+    <!-- Script Utama -->
+    <script type="module" src="app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
@@ -23,7 +23,11 @@
         input, textarea, select { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; transition: all 0.3s ease; }
         input:focus, textarea:focus, select:focus { border-color: #a855f7 !important; outline: none; box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
         option { background: #1a1a1a; color: white; }
-        .upload-active { border-color: #a855f7; background: rgba(168, 85, 247, 0.05); }
+        .story-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); margin: 1.5rem 0; }
+        
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="p-6 md:p-12">
@@ -35,145 +39,181 @@
                 <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                 <span class="text-sm font-bold uppercase tracking-wider">Ganti Tipe Materi</span>
             </a>
-            <!-- Tester Badge -->
             <div id="tester-badge" class="hidden px-4 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                 <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
                 Tester Mode
             </div>
         </div>
-<div id="tester-panel" class="mb-6 hidden">
-    <div class="glass border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <div class="bg-amber-500 text-[10px] font-black px-2 py-1 rounded-md text-white uppercase">Tester Mode</div>
-            <p class="text-sm text-slate-300 italic">Ganti identitas guru:</p>
+
+        <div id="tester-panel" class="mb-6 hidden">
+            <div class="glass border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-500 text-[10px] font-black px-2 py-1 rounded-md text-white uppercase">Tester Mode</div>
+                    <p class="text-sm text-slate-300 italic">Ganti identitas guru:</p>
+                </div>
+                <select id="tester-identity-select" class="p-2 rounded-lg text-sm glass cursor-pointer border-amber-500/50 min-w-[200px]">
+                    <option value="">Pilih Guru...</option>
+                    <option value="IBU YAYAH">Ibu Yayah (Wali Kelas)</option>
+                    <option value="BPK JAJANG">Bapak Jajang (PJOK)</option>
+                    <option value="IBU ILAH">Ibu Ilah (B. Inggris)</option>
+                    <option value="IBU LINA">Ibu Lina (PAI)</option>
+                    <option value="DEV_ADMIN">Developer Admin</option>
+                </select>
+            </div>
         </div>
-        <select id="tester-identity-select" class="p-2 rounded-lg text-sm glass cursor-pointer border-amber-500/50 min-w-[200px]">
-            <option value="">Pilih Guru...</option>
-            <option value="IBU YAYAH">Ibu Yayah (Wali Kelas)</option>
-            <option value="BPK JAJANG">Bapak Jajang (PJOK)</option>
-            <option value="IBU ILAH">Ibu Ilah (B. Inggris)</option>
-            <option value="IBU LINA">Ibu Lina (PAI)</option>
-            <option value="DEV_ADMIN">Developer Admin</option>
-        </select>
-    </div>
-</div>
 
         <!-- Header -->
         <div class="mb-10">
-            <h1 class="text-4xl font-black uppercase tracking-tighter italic">Create <span class="neon-text">Storytelling</span></h1>
+            <h1 class="text-4xl font-black uppercase tracking-tighter italic text-white">Create <span class="neon-text">Storytelling</span></h1>
             <p class="text-slate-500 mt-2 italic font-medium">Transmisi naratif oleh: <span id="display-author" class="text-purple-400 font-bold">Memuat...</span></p>
         </div>
 
         <form id="story-form" class="space-y-8">
-            <!-- Informasi Dasar -->
-            <div class="glass p-8 rounded-[2.5rem] space-y-6 border-purple-500/20 shadow-2xl shadow-purple-500/5">
+            <!-- Fondasi -->
+            <div class="glass p-8 rounded-[2.5rem] space-y-6 border-purple-500/20">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="p-2 rounded-lg bg-purple-500/20 text-purple-400">
                         <i data-lucide="book-marked" class="w-5 h-5"></i>
                     </div>
                     <h2 class="text-lg font-bold uppercase tracking-wide">Fondasi Cerita</h2>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Judul Cerita</label>
-                        <input type="text" id="judul" placeholder="Contoh: Petualangan Si Tetes Hujan" class="w-full p-4 rounded-2xl" required>
+                        <input type="text" id="judul" placeholder="Judul petualangan..." class="w-full p-4 rounded-2xl" required oninput="updatePreview()">
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Mata Pelajaran</label>
-                        <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none" required>
-    <option value="" disabled selected>Memuat Mapel...</option>
-</select>
+                        <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none" required onchange="updatePreview()">
+                            <option value="" disabled selected>Memuat Mapel...</option>
+                        </select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Karakter Utama</label>
-                        <input type="text" id="karakter" placeholder="Contoh: Profesor Atom" class="w-full p-4 rounded-2xl">
+                        <input type="text" id="karakter" placeholder="Nama tokoh..." class="w-full p-4 rounded-2xl" oninput="updatePreview()">
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Latar / Setting</label>
-                        <input type="text" id="setting" placeholder="Contoh: Laboratorium Luar Angkasa" class="w-full p-4 rounded-2xl">
+                        <input type="text" id="setting" placeholder="Lokasi cerita..." class="w-full p-4 rounded-2xl" oninput="updatePreview()">
                     </div>
                 </div>
             </div>
 
-            <!-- Konten Narasi -->
+            <!-- Konten -->
             <div class="glass p-8 rounded-[2.5rem] space-y-6 border-pink-500/20">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="p-2 rounded-lg bg-pink-500/20 text-pink-400">
                         <i data-lucide="pen-tool" class="w-5 h-5"></i>
                     </div>
-                    <h2 class="text-lg font-bold uppercase tracking-wide">Isi Cerita & Pesan</h2>
+                    <h2 class="text-lg font-bold uppercase tracking-wide">Isi Cerita</h2>
                 </div>
-
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Alur Narasi</label>
-                    <textarea id="narasi" rows="8" placeholder="Tuliskan cerita Anda di sini..." class="w-full p-6 rounded-3xl leading-relaxed font-medium" required></textarea>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Alur Narasi (Gunakan Enter 2x untuk paragraf baru)</label>
+                    <textarea id="narasi" rows="8" placeholder="Tuliskan cerita..." class="w-full p-6 rounded-3xl leading-relaxed font-medium" required oninput="updatePreview()"></textarea>
                 </div>
-
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Moral / Intisari Pembelajaran</label>
-                    <textarea id="moral" rows="2" placeholder="Apa inti pelajaran yang bisa diambil?" class="w-full p-4 rounded-2xl"></textarea>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1 tracking-widest">Moral Pelajaran</label>
+                    <textarea id="moral" rows="2" placeholder="Apa inti pelajarannya?" class="w-full p-4 rounded-2xl" oninput="updatePreview()"></textarea>
                 </div>
             </div>
 
-            <!-- Media Visual (Fixed Upload) -->
+            <!-- Media -->
             <div class="glass p-8 rounded-[2.5rem] space-y-6 border-white/10">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="p-2 rounded-lg bg-white/10 text-white">
                         <i data-lucide="image" class="w-5 h-5"></i>
                     </div>
-                    <h2 class="text-lg font-bold uppercase tracking-wide">Ilustrasi Media</h2>
+                    <h2 class="text-lg font-bold uppercase tracking-wide">Media Ilustrasi</h2>
                 </div>
 
-                <div class="flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-10 rounded-[2rem] transition-all hover:bg-white/5 cursor-pointer group" id="upload-trigger">
-                    <div id="media-preview" class="hidden mb-6 w-full text-center">
-                        <div id="preview-content" class="inline-block relative">
-                            <!-- Injected by JS -->
-                            <div id="type-indicator" class="absolute -top-3 -right-3 bg-purple-600 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg"></div>
+                <div class="relative group">
+                    <div id="upload-container" class="flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-10 rounded-[2rem] transition-all hover:bg-white/5 cursor-pointer" onclick="openWidget()">
+                        <div id="upload-placeholder" class="text-center">
+                            <div class="bg-white/10 p-4 rounded-full inline-block mb-4">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400"></i>
+                            </div>
+                            <p class="text-sm font-bold">Klik untuk Unggah Media</p>
+                            <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Image / Video</p>
+                        </div>
+                        
+                        <!-- Status Upload Berhasil -->
+                        <div id="upload-success" class="hidden text-center">
+                            <div class="bg-green-500/20 p-4 rounded-full inline-block mb-4">
+                                <i data-lucide="check-circle" class="w-8 h-8 text-green-400"></i>
+                            </div>
+                            <p id="file-name-display" class="text-sm font-bold text-green-400 mb-2">Media Terpasang</p>
+                            <button type="button" onclick="resetMedia(event)" class="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-full font-black uppercase tracking-widest border border-red-500/20">Hapus & Ganti</button>
                         </div>
                     </div>
-
-                    <div id="upload-placeholder" class="text-center">
-                        <div class="bg-white/10 p-4 rounded-full inline-block mb-4 group-hover:scale-110 transition-transform">
-                            <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400"></i>
-                        </div>
-                        <p class="text-sm font-bold tracking-tight">Ketuk untuk Membuka Upload Widget</p>
-                        <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-widest leading-loose">Images / Videos / PDF<br>(Cloudinary Transmisi)</p>
-                    </div>
-
-                    <input type="hidden" id="media-url">
-                    <input type="hidden" id="media-type" value="image">
                 </div>
+
+                <input type="hidden" id="media-url">
+                <input type="hidden" id="media-type" value="image">
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-col md:flex-row gap-4 pt-4 pb-20">
-                <button type="submit" id="btn-submit" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 p-5 rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all hover:scale-[1.02] shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3">
-                    <i data-lucide="send" class="w-5 h-5"></i>
-                    Publish Cerita
-                </button>
-                <button type="button" onclick="window.location.href='dashboard.html'" class="px-8 py-5 rounded-2xl font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 transition-all border border-white/10 text-slate-400">
-                    Batal
-                </button>
-            </div>
+            <button type="submit" id="btn-submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 p-5 rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl shadow-purple-500/20">
+                <i data-lucide="send" class="w-5 h-5"></i>
+                Publish Cerita
+            </button>
         </form>
+
+        <!-- PRATINJAU KONTEN -->
+        <div class="mt-20 border-t border-white/10 pt-10 mb-20">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="h-px flex-1 bg-white/10"></div>
+                <h2 class="text-xs font-black uppercase tracking-[0.5em] text-slate-500">Live Preview</h2>
+                <div class="h-px flex-1 bg-white/10"></div>
+            </div>
+
+            <div class="glass rounded-[3rem] p-6 md:p-10 border-white/5 overflow-hidden shadow-2xl">
+                <div id="preview-area" class="space-y-8">
+                    <div class="text-center space-y-4">
+                        <span class="text-[9px] font-black uppercase text-pink-400 bg-pink-500/10 px-4 py-1.5 rounded-full border border-pink-500/20 tracking-[0.2em]">Story Mode</span>
+                        <h2 id="prev-judul" class="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-tight">Judul Belum Diisi</h2>
+                        <p id="prev-author" class="text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">Oleh: Guru Anda</p>
+                    </div>
+
+                    <div id="prev-media-box" class="w-full rounded-[2rem] overflow-hidden border border-white/10 bg-black/20 hidden">
+                        <!-- Preview Media Injected Here -->
+                    </div>
+
+                    <div id="prev-story-container" class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                <p class="text-[9px] text-pink-400 font-black uppercase mb-1">Tokoh</p>
+                                <p id="prev-karakter" class="font-bold text-sm text-slate-300">-</p>
+                            </div>
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                <p class="text-[9px] text-purple-400 font-black uppercase mb-1">Latar</p>
+                                <p id="prev-setting" class="font-bold text-sm text-slate-300">-</p>
+                            </div>
+                        </div>
+                        <div id="prev-narasi" class="text-slate-400 leading-relaxed italic text-center py-10">Tuliskan sesuatu untuk melihat keajaiban narasi...</div>
+                    </div>
+
+                    <div id="prev-moral-box" class="hidden p-6 rounded-2xl bg-yellow-500/5 border border-yellow-500/20 text-center">
+                        <p class="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">Pesan Moral</p>
+                        <p id="prev-moral" class="italic text-yellow-100 text-sm"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Toast -->
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-full hidden items-center gap-4 border-purple-500/50 z-50 animate-bounce">
         <div class="bg-purple-500 p-1 rounded-full"><i data-lucide="check" class="w-4 h-4 text-white"></i></div>
-        <p class="font-bold text-sm uppercase tracking-tight">Transmisi Cerita Berhasil!</p>
+        <p class="font-bold text-sm uppercase tracking-tight">Transmisi Berhasil!</p>
     </div>
+
 <script type="module">
 import { db } from "./app.js";
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getCurrentUserContext } from "./app.js";
 
 const appId = "sekolah-sdnwidarasari";
-
 const MAPEL_RULES = {
   "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
   "BPK JAJANG": ["PJOK"],
@@ -182,14 +222,71 @@ const MAPEL_RULES = {
   "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
 };
 
-// ===== USER CONTEXT =====
 let { name: currentAuthor, isTester } = getCurrentUserContext();
 currentAuthor = (currentAuthor || "").toUpperCase();
 
-const savedTester = sessionStorage.getItem("active_tester_name");
-if (isTester && savedTester) currentAuthor = savedTester;
+// Global functions for UI
+window.openWidget = () => {
+    if(window.myWidget) window.myWidget.open();
+};
 
-// ===== UI =====
+window.resetMedia = (e) => {
+    e.stopPropagation();
+    document.getElementById('media-url').value = '';
+    document.getElementById('media-type').value = 'image';
+    document.getElementById('upload-placeholder').classList.remove('hidden');
+    document.getElementById('upload-success').classList.add('hidden');
+    updatePreview();
+};
+
+window.updatePreview = () => {
+    const judulVal = document.getElementById('judul').value || "Judul Belum Diisi";
+    const authorVal = currentAuthor || "Guru Anda";
+    const karakterVal = document.getElementById('karakter').value || "-";
+    const settingVal = document.getElementById('setting').value || "-";
+    const narasiVal = document.getElementById('narasi').value;
+    const moralVal = document.getElementById('moral').value;
+    const mediaUrl = document.getElementById('media-url').value;
+    const mediaType = document.getElementById('media-type').value;
+
+    document.getElementById('prev-judul').innerText = judulVal;
+    document.getElementById('prev-author').innerText = `Oleh: ${authorVal}`;
+    document.getElementById('prev-karakter').innerText = karakterVal;
+    document.getElementById('prev-setting').innerText = settingVal;
+
+    // Narasi Split Logic
+    const narasiBox = document.getElementById('prev-narasi');
+    if (narasiVal) {
+        const scenes = narasiVal.split('\n\n');
+        narasiBox.innerHTML = scenes.map(s => `<div class="p-4 bg-white/5 rounded-xl border border-white/5 mb-4 text-slate-300 leading-relaxed">${s.replace(/\n/g, '<br>')}</div>`).join('');
+        narasiBox.classList.remove('italic', 'text-center');
+    } else {
+        narasiBox.innerHTML = "Tuliskan sesuatu untuk melihat keajaiban narasi...";
+        narasiBox.classList.add('italic', 'text-center');
+    }
+
+    // Moral
+    const moralBox = document.getElementById('prev-moral-box');
+    if (moralVal) {
+        moralBox.classList.remove('hidden');
+        document.getElementById('prev-moral').innerText = moralVal;
+    } else {
+        moralBox.classList.add('hidden');
+    }
+
+    // Media
+    const mediaBox = document.getElementById('prev-media-box');
+    if (mediaUrl) {
+        mediaBox.classList.remove('hidden');
+        mediaBox.innerHTML = mediaType === 'video' 
+            ? `<video src="${mediaUrl}" class="w-full aspect-video bg-black" muted autoplay loop></video>`
+            : `<img src="${mediaUrl}" class="w-full h-auto object-cover"/>`;
+    } else {
+        mediaBox.classList.add('hidden');
+    }
+};
+
+// Init mapel
 function updateMapel(name) {
   const select = document.getElementById('mapel-select');
   select.innerHTML = `<option value="" disabled selected>Pilih Mapel...</option>`;
@@ -202,110 +299,81 @@ function updateMapel(name) {
   });
 }
 
-function updateUI() {
-  document.getElementById('display-author').innerText = currentAuthor;
-  updateMapel(currentAuthor);
+// Cloudinary
+if (window.cloudinary && window.CLOUDINARY_CONFIG) {
+    window.myWidget = window.cloudinary.createUploadWidget({
+        cloudName: window.CLOUDINARY_CONFIG.cloudName,
+        uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
+        sources: ['local', 'url', 'camera'],
+        clientAllowedFormats: ['png', 'jpg', 'jpeg', 'mp4', 'mov'],
+        maxFileSize: 20000000 // 20MB
+    }, (error, result) => {
+        if (!error && result.event === "success") {
+            document.getElementById('media-url').value = result.info.secure_url;
+            document.getElementById('media-type').value = result.info.resource_type;
+            
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('upload-success').classList.remove('hidden');
+            document.getElementById('file-name-display').innerText = `${result.info.original_filename}.${result.info.format}`;
+            
+            updatePreview();
+        }
+    });
 }
 
-// ===== INIT =====
+// Page load
 window.addEventListener('DOMContentLoaded', () => {
-  if (isTester) {
-    document.getElementById('tester-panel').classList.remove('hidden');
-    const tSel = document.getElementById('tester-identity-select');
-    tSel.value = currentAuthor;
-    tSel.onchange = e => {
-      currentAuthor = e.target.value.toUpperCase();
-      sessionStorage.setItem("active_tester_name", currentAuthor);
-      updateUI();
-    };
-  }
-
-  updateUI();
-  lucide.createIcons();
+    if (isTester) {
+        document.getElementById('tester-panel').classList.remove('hidden');
+        const tSel = document.getElementById('tester-identity-select');
+        tSel.value = currentAuthor;
+        tSel.onchange = e => {
+            currentAuthor = e.target.value.toUpperCase();
+            document.getElementById('display-author').innerText = currentAuthor;
+            updateMapel(currentAuthor);
+            updatePreview();
+        };
+    }
+    document.getElementById('display-author').innerText = currentAuthor;
+    updateMapel(currentAuthor);
+    lucide.createIcons();
+    updatePreview();
 });
 
-// ====================================
-// CLOUDINARY UPLOAD (STORYTELLING)
-// ====================================
-let myWidget = null;
-
-if (window.cloudinary && window.CLOUDINARY_CONFIG) {
-  
-myWidget = window.cloudinary.createUploadWidget({
-    cloudName: window.CLOUDINARY_CONFIG.cloudName,
-    uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
-    sources: window.CLOUDINARY_CONFIG.uploadOptions.sources,
-    clientAllowedFormats: window.CLOUDINARY_CONFIG.uploadOptions.clientAllowedFormats,
-    maxFileSize: window.CLOUDINARY_CONFIG.uploadOptions.maxFileSize,
-    styles: window.CLOUDINARY_CONFIG.uploadOptions.styles
-}, (error, result) => {
-    // Temukan bagian result.event === "success" di dalam myWidget
-if (!error && result.event === "success") {
-  document.getElementById('media-url').value = result.info.secure_url;
-  document.getElementById('media-type').value = result.info.resource_type;
-
-  // Tambahkan baris ini untuk menampilkan nama file/status
-  document.getElementById('media-preview').classList.remove('hidden');
-  document.getElementById('preview-content').innerHTML = `
-    <div class="p-4 bg-purple-500/20 rounded-xl border border-purple-500/30 text-xs">
-        File Terpasang: ${result.info.original_filename}.${result.info.format}
-    </div>
-  `;
-  document.getElementById('upload-placeholder').classList.add('hidden');
-}
-
-
-  });
-}
-
-const trigger = document.getElementById('upload-trigger');
-if (trigger) {
-  trigger.addEventListener('click', (e) => {
-    e.preventDefault();
-
-    if (!myWidget) {
-      alert("Cloudinary belum siap.");
-      return;
-    }
-
-    myWidget.open();
-  });
-}
-
-// ===== SUBMIT =====
+// Submit
 document.getElementById('story-form').onsubmit = async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  btn.innerText = "MEMANCARKAN...";
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> MEMANCARKAN...`;
+    lucide.createIcons();
 
-  try {
-    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
-      tipe: "storytelling",
-      judul: judul.value,
-      mapel: document.getElementById('mapel-select').value,
-      karakter: karakter.value,
-      setting: setting.value,
-      narasi: narasi.value,
-      moral: moral.value,
-      media: document.getElementById('media-url').value,
-      mediaType: document.getElementById('media-type').value,
-      author: currentAuthor,
-      createdAt: new Date().toISOString()
-    });
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
+            tipe: "storytelling",
+            judul: judul.value,
+            mapel: document.getElementById('mapel-select').value,
+            karakter: karakter.value,
+            setting: setting.value,
+            narasi: narasi.value,
+            moral: moral.value,
+            media: document.getElementById('media-url').value,
+            mediaType: document.getElementById('media-type').value,
+            author: currentAuthor,
+            createdAt: new Date().toISOString()
+        });
 
-    document.getElementById('toast').classList.remove('hidden');
-    setTimeout(() => location.href = 'dashboard.html', 2000);
-  } catch (e) {
-    alert("Gagal simpan cerita!");
-    btn.disabled = false;
-    btn.innerText = "Publish Cerita";
-  }
+        document.getElementById('toast').classList.remove('hidden');
+        setTimeout(() => location.href = 'dashboard.html', 2000);
+    } catch (e) {
+        alert("Gagal simpan cerita: " + e.message);
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> Publish Cerita`;
+        lucide.createIcons();
+    }
 };
 </script>
 </body>
 </html>
-
-
 
 
