@@ -229,36 +229,50 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
         }
 
         function renderAdminList(data) {
-            const container = document.getElementById('history-list');
-            if (!data.length) {
-                container.innerHTML = `<div class="py-12 text-center text-slate-600 text-xs font-bold uppercase tracking-widest italic">Belum ada transmisi data.</div>`;
-                return;
-            }
+    const container = document.getElementById('history-list');
+    if (!data.length) {
+        container.innerHTML = `<div class="py-12 text-center text-slate-600 text-xs font-bold uppercase tracking-widest italic">Belum ada transmisi data.</div>`;
+        return;
+    }
 
-            container.innerHTML = data.map(item => `
-                <div class="history-item glass flex items-center justify-between p-5 rounded-3xl border border-white/5 group">
-                    <div class="flex items-center gap-5">
-                        <input type="checkbox" data-id="${item.id}" class="checkbox-custom">
-                        <div>
-                            <h4 class="font-black text-sm text-white uppercase tracking-tight">${item.judul}</h4>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-[9px] font-black px-2 py-0.5 rounded bg-white/10 text-slate-400 uppercase">${item.mapel}</span>
-                                <span class="text-[9px] font-bold text-slate-600 uppercase">${new Date(item.createdAt).toLocaleDateString()}</span>
-                            </div>
+    container.innerHTML = data.map(item => {
+        // Cek apakah tipe materi adalah storytelling
+        const isStory = item.tipe === 'storytelling';
+        const typeIcon = isStory ? 'sparkles' : 'book-open';
+        const typeLabel = isStory ? 'Storytelling' : 'Materi Standar';
+        const badgeClass = isStory ? 'badge-story text-white' : 'bg-cyan-500/10 text-cyan-400';
+        const borderClass = isStory ? 'border-l-purple-500' : 'border-l-cyan-500';
+
+        return `
+            <div class="history-item glass flex items-center justify-between p-5 rounded-3xl border border-white/5 border-l-4 ${borderClass} group">
+                <div class="flex items-center gap-5">
+                    <input type="checkbox" data-id="${item.id}" class="checkbox-custom">
+                    <div class="w-10 h-10 rounded-xl ${isStory ? 'bg-purple-500/10 text-purple-400' : 'bg-cyan-500/10 text-cyan-400'} flex items-center justify-center">
+                        <i data-lucide="${typeIcon}" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-sm text-white uppercase tracking-tight">${item.judul || 'Tanpa Judul'}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded ${badgeClass} uppercase tracking-widest">${typeLabel}</span>
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded bg-white/10 text-slate-400 uppercase">${item.mapel}</span>
+                            <span class="text-[9px] font-bold text-slate-600 uppercase">${new Date(item.createdAt).toLocaleDateString()}</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onclick="window.editMateri('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-cyan-500/10 rounded-xl text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="window.deleteMateri('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-rose-500/10 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
                 </div>
-            `).join('');
-            lucide.createIcons();
-        }
+                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <button onclick="window.editMateri('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-cyan-500/10 rounded-xl text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="window.deleteMateri('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-rose-500/10 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    lucide.createIcons();
+}
+
 
         // --- MURID VIEW (BELAJAR & STORYTELLING) ---
         function setupMuridView(currentUid) {
@@ -325,43 +339,65 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
             lucide.createIcons();
         }
 
-        // --- GLOBAL ACTIONS ---
-        window.deleteMateri = async (id) => {
-            if (confirm("Hapus materi ini secara permanen?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', id));
-            }
+    // --- GLOBAL ACTIONS ---
+window.deleteMateri = async (id) => {
+    if (confirm("Hapus materi ini secara permanen?")) {
+        try {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', id));
+        } catch (err) {
+            console.error("Gagal menghapus:", err);
+            alert("Gagal menghapus data.");
+        }
+    }
+};
+
+window.editMateri = (id) => {
+    const item = activeData.find(d => d.id === id);
+    if (!item) return;
+
+    // Load data ke modal
+    document.getElementById('edit-title').value = item.judul || "";
+    
+    // Fallback: Gunakan deskripsi (standar) atau narasi (story)
+    const deskripsiKonten = item.deskripsi || item.narasi || "";
+    document.getElementById('edit-desc').value = deskripsiKonten;
+
+    document.getElementById('modal-edit').classList.remove('hidden');
+
+    // Handler Simpan
+    document.getElementById('btn-save-edit').onclick = async () => {
+        const updateData = {
+            judul: document.getElementById('edit-title').value
         };
 
-        window.editMateri = (id) => {
-            const item = activeData.find(d => d.id === id);
-            if (!item) return;
-            document.getElementById('edit-title').value = item.judul;
-            document.getElementById('edit-desc').value = item.deskripsi;
-            document.getElementById('modal-edit').classList.remove('hidden');
-            document.getElementById('btn-save-edit').onclick = async () => {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', id), {
-                    judul: document.getElementById('edit-title').value,
-                    deskripsi: document.getElementById('edit-desc').value
-                });
-                closeModal();
-            };
-        };
+        // Simpan kembali ke field yang sesuai asalnya
+        if (item.tipe === 'storytelling') {
+            updateData.narasi = document.getElementById('edit-desc').value;
+        } else {
+            updateData.deskripsi = document.getElementById('edit-desc').value;
+        }
 
-        document.getElementById('btn-bulk-delete').onclick = async () => {
-            const checked = document.querySelectorAll('.checkbox-custom:checked');
-            if (!checked.length) return;
-            if (confirm(`Hapus ${checked.length} transmisi terpilih?`)) {
-                for (const cb of checked) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', cb.dataset.id));
-                }
-            }
-        };
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'materi', id), updateData);
+            window.closeModal(); // Tambahkan window. agar terpanggil
+        } catch (err) {
+            console.error("Gagal update:", err);
+            alert("Gagal memperbarui materi.");
+        }
+    };
+};
 
-        window.closeModal = () => document.getElementById('modal-edit').classList.add('hidden');
-        window.onload = init;
+// Pastikan fungsi ini bisa dipanggil dari HTML (onclick)
+window.closeModal = () => {
+    document.getElementById('modal-edit').classList.add('hidden');
+};
+
+window.onload = init;
+
     </script>
 </body>
 </html>
+
 
 
 
