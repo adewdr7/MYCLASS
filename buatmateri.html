@@ -7,341 +7,269 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Cloudinary SDK (HARUS DULU) -->
-<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <!-- Config Cloudinary -->
+    <script src="cloudinary-config.js"></script>
 
-<!-- Config Cloudinary (GLOBAL) -->
-<script src="cloudinary-config.js"></script>
-
-<!-- Baru script module -->
-<script type="module" src="app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; min-height: 100vh; }
         .glass { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
         .neon-text { background: linear-gradient(to right, #22d3ee, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        input, textarea, select { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none !important; }
-        input:focus, textarea:focus, select:focus { border-color: #22d3ee !important; }
-        .tester-badge { background: linear-gradient(45deg, #f59e0b, #ef4444); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+        input, textarea, select { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; transition: all 0.3s; }
+        input:focus, textarea:focus, select:focus { border-color: #22d3ee !important; box-shadow: 0 0 15px rgba(34, 211, 238, 0.2); outline: none; }
     </style>
 </head>
-<body class="p-5 md:p-10">
-    
-    <div class="max-w-4xl mx-auto flex items-center justify-between mb-10">
-        <a href="dashboard.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-            <i data-lucide="arrow-left" class="w-5 h-5"></i>
-            <span>Dashboard</span>
-        </a>
-        <div class="text-right">
-            <h1 class="text-2xl font-black tracking-tighter uppercase neon-text">Mission Control</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Stellar Sync Engine</p>
-        </div>
-    </div>
-
-    <!-- Panel Tester -->
-    <div id="tester-panel" class="max-w-4xl mx-auto mb-6 hidden">
-        <div class="glass border-orange-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="tester-badge text-[10px] font-black px-2 py-1 rounded-md text-white uppercase">Tester Mode</div>
-                <p class="text-sm text-slate-300 italic">Ganti identitas guru untuk tes filter:</p>
+<body class="pb-20">
+    <div class="max-w-4xl mx-auto px-6 pt-12">
+        <header class="flex justify-between items-center mb-12">
+            <button onclick="location.href='dashboard.html'" class="p-3 rounded-2xl glass hover:bg-white/10 transition-all">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            <div class="text-right">
+                <h1 class="text-2xl font-extrabold tracking-tighter uppercase italic">Buat <span class="neon-text">Materi</span></h1>
+                <p id="author-display" class="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">AUTHOR: SYSTEM</p>
             </div>
-            <select id="tester-identity-select" class="p-2 rounded-lg text-sm glass cursor-pointer border-orange-500/50 min-w-[200px]">
-                <option value="">Pilih Guru...</option>
-                <option value="IBU YAYAH">Ibu Yayah (Wali Kelas)</option>
-                <option value="BPK JAJANG">Bapak Jajang (PJOK)</option>
-                <option value="IBU ILAH">Ibu Ilah (B. Inggris)</option>
-                <option value="IBU LINA">Ibu Lina (PAI)</option>
-                <option value="DEV_ADMIN">Developer Admin</option>
-            </select>
-        </div>
-    </div>
+        </header>
 
-    <div class="max-w-4xl mx-auto">
-        <div class="glass rounded-3xl p-8 border border-white/10 relative overflow-hidden">
-            <form id="materi-form" class="space-y-6">
+        <form id="materi-form" class="space-y-6">
+            <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                <!-- Media Upload Area -->
+                <div id="btn-upload" class="relative group cursor-pointer overflow-hidden rounded-3xl border-2 border-dashed border-white/10 hover:border-cyan-500/50 transition-all p-8 text-center bg-white/[0.02]">
+                    <div id="upload-prompt">
+                        <div class="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="clapperboard" class="w-8 h-8 text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-white mb-1 uppercase tracking-wider">Unggah Media Utama</h3>
+                        <p class="text-xs text-slate-500 italic">Video (MP4) atau Gambar (JPG/PNG)</p>
+                    </div>
+
+                    <!-- Info Media Terunggah & Tombol Hapus -->
+                    <div id="preview-info" class="hidden flex flex-col items-center gap-3">
+                        <div class="inline-flex items-center gap-2 bg-cyan-500/20 text-cyan-400 px-4 py-2 rounded-xl border border-cyan-500/30 text-sm">
+                            <i data-lucide="file-check" class="w-4 h-4"></i>
+                            <span id="file-label">Media Terlampir</span>
+                        </div>
+                        <button type="button" id="btn-remove-media" class="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center gap-2">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus Media
+                        </button>
+                    </div>
+                </div>
+
+                <input type="hidden" id="media-url">
+                <input type="hidden" id="media-type">
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label class="text-sm font-semibold text-slate-300">Judul Modul</label>
-                        <input type="text" id="judul" placeholder="Judul Materi..." class="w-full p-4 rounded-2xl" required>
+                        <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Judul Materi</label>
+                        <input type="text" id="judul" required placeholder="Contoh: Dasar-dasar UX Design" class="w-full p-4 rounded-2xl text-sm font-bold">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-sm font-semibold text-slate-300">Mata Pelajaran</label>
-                        <select id="mapel-select" class="w-full p-4 rounded-2xl appearance-none cursor-pointer" required>
-                            <!-- Diisi via JS -->
+                        <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Mata Pelajaran</label>
+                        <select id="mapel-select" required class="w-full p-4 rounded-2xl text-sm font-bold appearance-none">
+                            <option value="" disabled selected>Pilih Mapel</option>
+                            <option value="UI/UX DESIGN">UI/UX DESIGN</option>
+                            <option value="WEB DEV">WEB DEV</option>
+                            <option value="GRAPHIC">GRAPHIC</option>
+                            <option value="MOTION">MOTION</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Media Upload Area -->
                 <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300">Media Pendukung</label>
-                    <div id="btn-upload" class="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center hover:border-cyan-500/50 transition-all cursor-pointer group bg-white/5">
-                       <div id="preview-info" class="hidden flex flex-col items-center gap-2">
-    <div class="inline-flex items-center gap-2 bg-cyan-500/20 text-cyan-400 px-4 py-2 rounded-xl border border-cyan-500/30 text-sm">
-        <i data-lucide="file-check" class="w-4 h-4"></i>
-        <span id="file-label">Media Terlampir</span>
-    </div>
-    <button type="button" id="btn-remove-media" class="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
-        <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus Media
-    </button>
-</div>
-                        <div id="upload-prompt">
-                            <i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-slate-600 group-hover:text-cyan-400 mb-2 transition-colors"></i>
-                            <p class="text-sm text-slate-400">Klik untuk unggah (Cloudinary)</p>
-                        </div>
-                    </div>
-                    <input type="hidden" id="media-url">
-                    <input type="hidden" id="media-type">
+                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Deskripsi Singkat</label>
+                    <input type="text" id="deskripsi" required placeholder="Ringkasan materi dalam 1 kalimat..." class="w-full p-4 rounded-2xl text-sm">
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300">Deskripsi Ringkas</label>
-                    <input type="text" id="deskripsi" placeholder="Snippet materi..." class="w-full p-4 rounded-2xl">
+                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Konten Pembelajaran</label>
+                    <textarea id="konten" required rows="8" placeholder="Tuliskan materi lengkap di sini..." class="w-full p-6 rounded-3xl text-sm leading-relaxed"></textarea>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300">Isi Materi / Konten</label>
-                    <textarea id="konten" rows="6" placeholder="Tulis materi di sini..." class="w-full p-4 rounded-2xl" required></textarea>
-                </div>
-
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-white/5">
-                    <div class="flex items-center gap-3 text-sm text-slate-500">
-                        <i data-lucide="user" class="w-4 h-4"></i>
-                        <span>Oleh: <b id="display-author" class="text-cyan-400 uppercase">...</b></span>
-                    </div>
-                    <button type="submit" id="btn-submit" class="w-full md:w-auto px-10 py-4 bg-white text-black font-bold rounded-2xl hover:bg-cyan-400 transition-all flex items-center justify-center gap-2">
-                        <i data-lucide="send" class="w-5 h-5"></i>
-                        PUBLIKASIKAN
-                    </button>
-                </div>
-            </form>
-<div class="mt-12 pt-10 border-t border-white/10">
-    <h2 class="text-xs font-black uppercase tracking-[0.3em] text-slate-500 mb-8 flex items-center gap-2">
-        <i data-lucide="eye" class="w-4 h-4"></i> Live Preview
-    </h2>
-    
-    <article class="space-y-8 max-w-2xl mx-auto opacity-60 hover:opacity-100 transition-opacity">
-        <header class="space-y-4">
-            <span id="preview-mapel-tag" class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20 tracking-widest">MAPEL</span>
-            <h2 id="preview-display-title" class="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-[0.9] text-white">JUDUL PRATINJAU</h2>
-        </header>
-
-        <div id="preview-display-media" class="w-full rounded-3xl overflow-hidden bg-white/5 border border-white/10 hidden">
+                <button type="submit" id="btn-submit" class="w-full py-5 rounded-[2rem] bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-black uppercase tracking-[0.3em] text-xs hover:scale-[1.02] active:scale-95 transition-all">
+                    Publikasikan Materi
+                </button>
             </div>
+        </form>
 
-        <div class="glass p-8 rounded-[2rem] border-white/5 relative overflow-hidden">
-            <div id="preview-display-content" class="text-slate-200 whitespace-pre-wrap text-sm md:text-base leading-relaxed opacity-90">
-                Konten pratinjau akan muncul di sini...
-            </div>
-        </div>
-    </article>
-</div>
+        <!-- LIVE PREVIEW SECTION -->
+        <div class="mt-16 pt-16 border-t border-white/10">
+            <h2 class="text-xs font-black uppercase tracking-[0.4em] text-slate-600 mb-12 flex items-center justify-center gap-3">
+                <span class="h-px w-12 bg-white/10"></span>
+                <i data-lucide="eye" class="w-4 h-4"></i> Live Preview
+                <span class="h-px w-12 bg-white/10"></span>
+            </h2>
+            
+            <article class="space-y-8 max-w-2xl mx-auto opacity-80">
+                <header class="space-y-4 text-center md:text-left">
+                    <span id="preview-mapel-tag" class="inline-block text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20 tracking-widest">MAPEL</span>
+                    <h2 id="preview-display-title" class="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-[0.9] text-white break-words">JUDUL MATERI</h2>
+                </header>
 
+                <div id="preview-display-media" class="w-full rounded-3xl overflow-hidden bg-white/5 border border-white/10 hidden shadow-2xl">
+                    <!-- Media element (img/video) will appear here -->
+                </div>
+
+                <div class="glass p-8 md:p-12 rounded-[2.5rem] border-white/5 relative overflow-hidden">
+                    <div id="preview-display-content" class="text-slate-300 whitespace-pre-wrap text-base md:text-lg leading-relaxed opacity-90">
+                        Konten pratinjau Anda akan ditampilkan di sini dengan format yang sama seperti di halaman belajar...
+                    </div>
+                </div>
+            </article>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl text-cyan-400 font-bold hidden items-center gap-3 shadow-2xl">
-        <i data-lucide="check-circle"></i> Berhasil diunggah!
+    <!-- TOAST NOTIFIKASI -->
+    <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl border-cyan-500/50 flex items-center gap-3 z-50">
+        <i data-lucide="check-circle" class="text-cyan-400"></i>
+        <span class="font-bold text-sm tracking-wide">MATERI BERHASIL DISINKRONISASI!</span>
     </div>
-<script type="module">
-import { db } from './app.js';
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getCurrentUserContext } from './app.js';
 
-const appId = "sekolah-sdnwidarasari";
+    <!-- Tester Identity Selector -->
+    <div id="tester-panel" class="hidden fixed bottom-6 left-6 z-50 glass p-4 rounded-2xl border-yellow-500/30">
+        <p class="text-[9px] font-bold text-yellow-500 mb-2 uppercase tracking-tighter italic">Mode Peninjau Konten</p>
+        <select id="tester-identity-select" class="text-[10px] bg-black/50 border-none rounded-lg p-1">
+            <option value="RYAN">SEBAGAI RYAN</option>
+            <option value="RIFQI">SEBAGAI RIFQI</option>
+            <option value="ZIDAN">SEBAGAI ZIDAN</option>
+            <option value="ARYA">SEBAGAI ARYA</option>
+        </select>
+    </div>
 
-const MAPEL_RULES = {
-  "IBU YAYAH": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Seni Budaya", "Bahasa Sunda"],
-  "BPK JAJANG": ["PJOK"],
-  "IBU ILAH": ["Bahasa Inggris"],
-  "IBU LINA": ["Agama Islam"],
-  "DEV_ADMIN": ["Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "PJOK", "Bahasa Inggris", "Agama Islam", "Seni Budaya", "Bahasa Sunda"]
-};
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-// ===== USER CONTEXT =====
-let { name: currentAuthor, isTester } = getCurrentUserContext();
-currentAuthor = (currentAuthor || "").toUpperCase();
+        // Firebase Setup
+        const firebaseConfig = JSON.parse(sessionStorage.getItem("firebaseConfig"));
+        const appId = sessionStorage.getItem("appId");
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-// ambil tester aktif dari session
-const savedTester = sessionStorage.getItem("active_tester_name");
-if (isTester && savedTester) currentAuthor = savedTester;
+        // Tester Logic
+        const isTester = true; 
+        let currentAuthor = sessionStorage.getItem("active_tester_name") || "RYAN";
 
-// ===== UI FUNCTIONS =====
-function updateMapel(name) {
-  const select = document.getElementById('mapel-select');
-  select.innerHTML = `<option value="" disabled selected>Pilih Mapel...</option>`;
-  const list = MAPEL_RULES[name] || ["Materi Umum"];
-  list.forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
-    select.appendChild(opt);
-  });
-}
+        const updateAuthorUI = () => {
+            document.getElementById('author-display').innerText = `AUTHOR: ${currentAuthor}`;
+        };
 
-function updateAuthorUI() {
-  document.getElementById('display-author').innerText = currentAuthor;
-  updateMapel(currentAuthor);
-}
+        // ===== LIVE PREVIEW LOGIC (GLOBAL) =====
+        window.updatePreview = function() {
+            const judul = document.getElementById('judul').value;
+            const mapel = document.getElementById('mapel-select').value;
+            const konten = document.getElementById('konten').value;
+            const mediaUrl = document.getElementById('media-url').value;
+            const mediaType = document.getElementById('media-type').value;
 
-// ===== INIT =====
-window.addEventListener('DOMContentLoaded', () => {
-  if (isTester) {
-    document.getElementById('tester-panel').classList.remove('hidden');
-    const tSel = document.getElementById('tester-identity-select');
-    tSel.value = currentAuthor;
-    tSel.onchange = e => {
-      currentAuthor = e.target.value.toUpperCase();
-      sessionStorage.setItem("active_tester_name", currentAuthor);
-      updateAuthorUI();
-    };
-  }
+            document.getElementById('preview-display-title').innerText = judul || "JUDUL MATERI";
+            document.getElementById('preview-mapel-tag').innerText = mapel || "MAPEL";
+            document.getElementById('preview-display-content').innerText = konten || "Konten pratinjau Anda akan ditampilkan di sini...";
+            
+            const previewMediaBox = document.getElementById('preview-display-media');
+            if (mediaUrl) {
+                previewMediaBox.classList.remove('hidden');
+                if (mediaType === 'video') {
+                    previewMediaBox.innerHTML = `<video src="${mediaUrl}" controls class="w-full aspect-video bg-black"></video>`;
+                } else {
+                    previewMediaBox.innerHTML = `<img src="${mediaUrl}" class="w-full h-auto object-cover max-h-[500px]">`;
+                }
+            } else {
+                previewMediaBox.classList.add('hidden');
+                previewMediaBox.innerHTML = '';
+            }
+        };
 
-  updateAuthorUI();
-  lucide.createIcons();
+        window.addEventListener('DOMContentLoaded', () => {
+            if (isTester) {
+                document.getElementById('tester-panel').classList.remove('hidden');
+                const tSel = document.getElementById('tester-identity-select');
+                tSel.value = currentAuthor;
+                tSel.onchange = e => {
+                    currentAuthor = e.target.value.toUpperCase();
+                    sessionStorage.setItem("active_tester_name", currentAuthor);
+                    updateAuthorUI();
+                };
+            }
 
-// ===== LIVE PREVIEW LOGIC =====
-const inputs = ['judul', 'mapel-select', 'konten'];
-inputs.forEach(id => {
-    document.getElementById(id).addEventListener('input', updatePreview);
-});
+            updateAuthorUI();
+            lucide.createIcons();
 
-// ===== LIVE PREVIEW FUNCTION (FIXED) =====
-window.updatePreview = function () {
-    const judulVal = document.getElementById('judul').value;
-    const mapelVal = document.getElementById('mapel-select').value;
-    const kontenVal = document.getElementById('konten').value;
+            // Bind events for live preview
+            const inputs = ['judul', 'mapel-select', 'konten'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', window.updatePreview);
+            });
 
-    document.getElementById('preview-display-title').innerText =
-        judulVal || "JUDUL PRATINJAU";
+            // Cloudinary Widget Initialization
+            const uploadWidget = cloudinary.createUploadWidget(
+                window.CLOUDINARY_CONFIG,
+                (err, res) => {
+                    if (!err && res.event === "success") {
+                        document.getElementById('media-url').value = res.info.secure_url;
+                        document.getElementById('media-type').value = res.info.resource_type;
+                        document.getElementById('preview-info').classList.remove('hidden');
+                        document.getElementById('upload-prompt').classList.add('hidden');
+                        window.updatePreview();
+                        lucide.createIcons();
+                    }
+                }
+            );
 
-    document.getElementById('preview-mapel-tag').innerText =
-        mapelVal || "MAPEL";
+            document.getElementById('btn-upload').onclick = () => uploadWidget.open();
 
-    document.getElementById('preview-display-content').innerText =
-        kontenVal || "Konten pratinjau akan muncul di sini...";
+            // ===== LOGIKA HAPUS MEDIA =====
+            const removeBtn = document.getElementById('btn-remove-media');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Mencegah klik tembus ke upload widget
+                    e.preventDefault();
+                    
+                    document.getElementById('media-url').value = "";
+                    document.getElementById('media-type').value = "";
+                    document.getElementById('preview-info').classList.add('hidden');
+                    document.getElementById('upload-prompt').classList.remove('hidden');
+                    
+                    window.updatePreview();
+                });
+            }
+        });
 
-    const mediaUrl = document.getElementById('media-url').value;
-    const mediaType = document.getElementById('media-type').value;
-    const previewMediaBox = document.getElementById('preview-display-media');
+        // ===== SUBMIT FORM =====
+        document.getElementById('materi-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerText = "SINKRONISASI...";
 
-    if (mediaUrl) {
-        previewMediaBox.classList.remove('hidden');
+            const mediaUrlRaw = document.getElementById('media-url').value;
+            const optimizedUrl = mediaUrlRaw ? window.getOptimizedUrl(mediaUrlRaw) : "";
 
-        if (mediaType === 'video') {
-            previewMediaBox.innerHTML = `
-                <video src="${mediaUrl}" controls class="w-full aspect-video bg-black"></video>
-            `;
-        } else {
-            previewMediaBox.innerHTML = `
-                <img src="${mediaUrl}" class="w-full h-auto object-cover">
-            `;
-        }
-    } else {
-        previewMediaBox.classList.add('hidden');
-        previewMediaBox.innerHTML = "";
-    }
-};
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
+                    judul: document.getElementById('judul').value,
+                    mapel: document.getElementById('mapel-select').value,
+                    deskripsi: document.getElementById('deskripsi').value,
+                    konten: document.getElementById('konten').value,
+                    media: optimizedUrl,
+                    mediaType: document.getElementById('media-type').value || "none",
+                    author: currentAuthor,
+                    createdAt: new Date().toISOString()
+                });
 
-// Panggil updatePreview di dalam callback sukses Cloudinary Anda
-// Tambahkan baris ini di dalam (err, res) => { if (res.event === "success") { ... } }
-// updatePreview(); 
-
-// ===== LOGIKA HAPUS MEDIA =====
-const removeBtn = document.getElementById('btn-remove-media');
-if (removeBtn) {
-    removeBtn.addEventListener('click', (e) => {
-        // PENTING: Mencegah event "naik" ke parent (btn-upload) 
-        // dan mencegah aksi default
-        e.stopPropagation(); 
-        e.preventDefault(); 
-        
-        // 1. Kosongkan nilai input hidden
-        document.getElementById('media-url').value = "";
-        document.getElementById('media-type').value = "";
-        
-        // 2. Kembalikan UI tombol upload
-        document.getElementById('preview-info').classList.add('hidden');
-        document.getElementById('upload-prompt').classList.remove('hidden');
-        
-        // 3. Update pratinjau agar media hilang (Gunakan window.)
-        if (typeof window.updatePreview === "function") {
-            window.updatePreview();
-        }
-    });
-}
-// ===============================
-// CLOUDINARY UPLOAD (BUAT MATERI)
-// ===============================
-const uploadBtn = document.getElementById('btn-upload');
-
-if (uploadBtn) {
-  uploadBtn.addEventListener('click', () => {
-
-    if (!window.cloudinary || !window.CLOUDINARY_CONFIG) {
-      alert("Cloudinary belum siap. Periksa cloudinary-config.js");
-      return;
-    }
-
-    window.cloudinary.openUploadWidget({
-    cloudName: window.CLOUDINARY_CONFIG.cloudName,
-    uploadPreset: window.CLOUDINARY_CONFIG.uploadPreset,
-    sources: window.CLOUDINARY_CONFIG.uploadOptions.sources,
-    multiple: false,
-    styles: window.CLOUDINARY_CONFIG.uploadOptions.styles
-}, (err, res) => {
-    if (!err && res.event === "success") {
-        document.getElementById('media-url').value = res.info.secure_url;
-        document.getElementById('media-type').value = res.info.resource_type;
-        document.getElementById('preview-info').classList.remove('hidden');
-        document.getElementById('upload-prompt').classList.add('hidden');
-updatePreview();
-    }
-});
-
-  });
-}
-
-
-// ===== SUBMIT =====
-document.getElementById('materi-form').onsubmit = async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  btn.innerText = "SINKRONISASI...";
-
-  // --- KODE BARU DI SINI ---
-  const mediaUrlRaw = document.getElementById('media-url').value;
-  // Memastikan fungsi getOptimizedUrl dipanggil hanya jika ada URL-nya
-  const optimizedUrl = mediaUrlRaw ? window.getOptimizedUrl(mediaUrlRaw) : "";
-  // -------------------------
-
-  try {
-    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'materi'), {
-      judul: judul.value,
-      mapel: document.getElementById('mapel-select').value,
-      deskripsi: deskripsi.value,
-      konten: konten.value,
-      media: optimizedUrl, // Gunakan variabel optimizedUrl yang sudah diproses
-      mediaType: document.getElementById('media-type').value || "none", // Beri fallback jika kosong
-      author: currentAuthor,
-      createdAt: new Date().toISOString()
-    });
-
-    document.getElementById('toast').classList.remove('hidden');
-    setTimeout(() => location.href = 'dashboard.html', 2000);
-  } catch (e) {
-    console.error(e); // Tambahkan log error untuk mempermudah debug
-    alert("Gagal menyimpan!");
-    btn.disabled = false;
-    btn.innerText = "PUBLIKASIKAN";
-  }
-};
-</script>
+                document.getElementById('toast').classList.remove('hidden');
+                lucide.createIcons();
+                setTimeout(() => location.href = 'dashboard.html', 2000);
+            } catch (err) {
+                console.error(err);
+                alert("Gagal menyimpan materi. Coba lagi.");
+                btn.disabled = false;
+                btn.innerText = "Publikasikan Materi";
+            }
+        };
+    </script>
 </body>
 </html>
-
-
-
 
 
