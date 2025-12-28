@@ -17,16 +17,10 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 10px; }
-.story-divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-  margin: 2rem 0;
-}
     </style>
 </head>
 <body class="p-5 md:p-10">
 
-    <!-- VIEW 1: DAFTAR MATERI (GRIID) -->
     <div id="view-list">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-5 mb-10">
             <div>
@@ -34,7 +28,7 @@
                     <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i> Kembali ke Dashboard
                 </a>
                 <h1 class="text-3xl font-black uppercase tracking-tighter">Exploration <span class="text-cyan-400 italic">Deck</span></h1>
-                <p class="text-slate-400 text-sm">Materi tersinkronisasi otomatis dengan Cloud Firestore.</p>
+                <p class="text-slate-400 text-sm">Pilih materi untuk memulai perjalanan belajarmu.</p>
             </div>
         </div>
 
@@ -52,290 +46,70 @@
             </div>
         </div>
 
-        <!-- Loading State -->
         <div id="loading" class="max-w-6xl mx-auto text-center py-20">
-            <div class="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4 shadow-[0_0_15px_rgba(34,211,238,0.5)]"></div>
+            <div class="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p class="text-slate-500 font-black uppercase tracking-widest text-[10px]">Menghubungkan ke Orbit...</p>
         </div>
 
-        <!-- Container Kartu (Grid) -->
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden pb-20" id="materi-grid"></div>
     </div>
 
-    <!-- VIEW 2: BACA MATERI (FULL PAGE VIEW) -->
-    <div id="view-read" class="max-w-4xl mx-auto hidden pt-4 pb-20">
-        <button onclick="window.closeMateri()" class="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-8 group">
-            <i data-lucide="chevron-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
-            <span class="font-black uppercase tracking-widest text-[10px]">Tutup Materi</span>
-        </button>
-
-        <article class="space-y-8">
-            <header class="space-y-4">
-                <div class="flex items-center gap-3">
-                    <span id="read-mapel" class="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20 tracking-widest">MAPEL</span>
-                </div>
-                <h2 id="read-title" class="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-[0.9] text-white">JUDUL MATERI</h2>
-                <div class="flex items-center gap-3 pt-2">
-                    <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-                        <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
-                    </div>
-                    <p id="read-author" class="text-slate-400 text-xs font-bold uppercase tracking-widest italic">Oleh: Nama Guru</p>
-                </div>
-            </header>
-
-            <div id="read-media" class="w-full rounded-[2.5rem] overflow-hidden bg-white/5 border border-white/10 shadow-2xl group relative">
-                <!-- Media Injected Here -->
-            </div>
-
-          <div class="glass p-5 md:p-12 rounded-2xl md:rounded-[3rem] border-white/5 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                    <i data-lucide="quote" class="w-20 h-20 text-white"></i>
-                </div>
-                <div id="read-content"
-     class="text-slate-200 whitespace-pre-wrap text-[15px] md:text-lg leading-relaxed md:leading-[1.8] font-medium opacity-90 relative z-10">
-                    <!-- Konten Materi -->
-                </div>
-            </div>
-            
-            <div class="pt-10 flex flex-col items-center gap-4">
-                <button onclick="window.closeMateri()" class="w-full md:w-auto px-12 py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest hover:bg-cyan-400 hover:scale-105 active:scale-95 transition-all shadow-xl">
-                    Selesai Membaca
-                </button>
-                <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em]">Stellar Academy &copy; 2025</p>
-            </div>
-        </article>
-    </div>
-
     <script type="module">
-        import { db, auth } from './app.js';
-        import { collection, onSnapshot, doc, setDoc} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { db } from './app.js';
+        import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const appId = "sekolah-sdnwidarasari"; 
         let allMateri = [];
         let currentFilter = 'Semua';
-const saveLearningHistory = async (materi) => {
-    // 1. Ambil user yang sedang login dari Firebase Auth
-    const user = auth.currentUser; 
-    const userRole = localStorage.getItem('userRole');
 
-    // 2. Validasi: Hanya simpan jika user adalah murid dan sudah terautentikasi
-    if (!user || userRole !== 'murid') return;
-
-    try {
-        // Gunakan user.uid (bukan localStorage) agar sinkron dengan Security Rules
-        await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'history_belajar', materi.id), {
-            judulMateri: materi.judul,
-            mapel: materi.mapel,
-            lastAccessed: new Date().toISOString(),
-            status: "SELESAI",
-            userName: localStorage.getItem('userName') // Opsional: simpan nama untuk mempermudah admin
-        });
-        console.log("Riwayat belajar berhasil dicatat untuk UID:", user.uid);
-    } catch (error) {
-        console.error("Gagal menyimpan riwayat:", error);
-    }
-};
-
-        // --- RENDER GRID ---
         const renderGrid = (list) => {
-    const grid = document.getElementById('materi-grid');
-    grid.innerHTML = list.map(item => `
-        <div onclick="openMateri('${item.id}')" class="materi-card glass rounded-[2rem] overflow-hidden border border-white/5 hover:border-cyan-500/30 group cursor-pointer">
-            <div class="p-6">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex flex-wrap gap-2">
-                        <span class="text-[9px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20 tracking-tighter">${item.mapel}</span>
-                        
-                        ${item.tipe === 'storytelling' ? `
-                            <span class="text-[9px] font-black uppercase text-pink-400 bg-pink-500/10 px-3 py-1 rounded-full border border-pink-500/20 tracking-tighter">Story</span>
-                        ` : ''}
-                    </div>
-                    <div class="p-2 rounded-xl bg-white/5 group-hover:bg-cyan-500/10 transition-colors">
-                        <i data-lucide="${item.tipe === 'storytelling' ? 'book-heart' : (item.mediaType === 'video' ? 'play' : 'book-open')}" class="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors"></i>
+            const grid = document.getElementById('materi-grid');
+            grid.innerHTML = list.map(item => `
+                <div onclick="openMateri('${item.id}', '${item.tipe}')" class="materi-card glass rounded-[2rem] overflow-hidden border border-white/5 hover:border-cyan-500/30 group cursor-pointer">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[9px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20 tracking-tighter">${item.mapel}</span>
+                                ${item.tipe === 'storytelling' ? `<span class="text-[9px] font-black uppercase text-pink-400 bg-pink-500/10 px-3 py-1 rounded-full border border-pink-500/20 tracking-tighter">Story</span>` : ''}
+                            </div>
+                            <div class="p-2 rounded-xl bg-white/5 group-hover:bg-cyan-500/10 transition-colors">
+                                <i data-lucide="${item.tipe === 'storytelling' ? 'book-heart' : (item.mediaType === 'video' ? 'play' : 'book-open')}" class="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 line-clamp-2 group-hover:text-cyan-400 transition-colors">${item.judul}</h3>
+                        <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">${item.deskripsi || 'Klik untuk membaca selengkapnya'}</p>
                     </div>
                 </div>
-                <h3 class="font-bold text-lg mb-2 line-clamp-2 group-hover:text-cyan-400 transition-colors">${item.judul}</h3>
-                <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">${item.deskripsi || (item.narasi ? item.narasi.substring(0, 60) + '...' : 'Klik untuk membaca selengkapnya')}</p>
-            </div>
-        </div>
-    `).join('');
-    lucide.createIcons();
-};
+            `).join('');
+            lucide.createIcons();
+        };
 
-        // --- FILTER LOGIC ---
         window.filterMateri = (cat) => {
             currentFilter = cat;
-            
-            // Update UI Button
             document.querySelectorAll('.category-pill').forEach(btn => {
-                const clickAttr = btn.getAttribute('onclick');
-                if (clickAttr && clickAttr.includes(`'${cat}'`)) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.innerText.includes(cat === 'Semua' ? 'Semua' : (cat === 'Agama Islam' ? 'Agama' : cat)));
             });
-
-            // Filter Data (Strict Match)
-            const filtered = (cat === 'Semua') 
-                ? allMateri 
-                : allMateri.filter(m => m.mapel === cat);
-
+            const filtered = (cat === 'Semua') ? allMateri : allMateri.filter(m => m.mapel === cat);
             renderGrid(filtered);
         };
 
-        // --- OPEN MATERI ---
-        window.openMateri = (id) => {
-    const item = allMateri.find(m => m.id === id);
-    if(!item) return;
-
-saveLearningHistory(item); 
-
-    document.getElementById('read-title').innerText = item.judul;
-    document.getElementById('read-mapel').innerText = item.mapel;
-    document.getElementById('read-author').innerText = `Oleh: ${item.author}`;
-    
-    const contentBox = document.getElementById('read-content');
-    
-    // --- LOGIKA ADAPTIF ---
-    if (item.tipe === 'storytelling') {
-        // TAMPILAN KHUSUS STORYTELLING (Data dari buatmateri-story.html)
-     // === STORYTELLING TERSTRUKTUR ===
-const scenes = item.narasi.split('\n\n');
-
-// STRUKTUR CERITA
-const opening = scenes.shift(); // paragraf pertama = pembuka
-const closing = scenes.length > 0 ? scenes.pop() : null; // terakhir = penutup
-
-contentBox.innerHTML = `
-  <!-- INFO TOKOH & LATAR -->
-  <div class="grid grid-cols-2 gap-4 mb-8">
-    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
-      <p class="text-[10px] font-black text-pink-400 uppercase mb-1">Tokoh Utama</p>
-      <p class="text-sm font-bold">${item.karakter || '-'}</p>
-    </div>
-    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
-      <p class="text-[10px] font-black text-purple-400 uppercase mb-1">Latar Cerita</p>
-      <p class="text-sm font-bold">${item.setting || '-'}</p>
-    </div>
-  </div>
-
-  <!-- PEMBUKA CERITA -->
-  ${opening ? `
-    <div class="mb-10 p-6 rounded-3xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-      <p class="text-xs font-black uppercase text-pink-400 mb-2">Pembuka Cerita</p>
-      <p class="text-lg leading-relaxed font-semibold text-slate-100 whitespace-pre-wrap">
-        ${opening}
-      </p>
-    </div>
-  ` : ''}
-
-  <!-- ISI CERITA -->
- ${scenes.map((scene, index) => `
-  <div class="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-    <p class="text-[10px] font-black uppercase text-slate-400 mb-2">
-      Bagian ${index + 1}
-    </p>
-    <p class="leading-relaxed text-slate-100 text-[15px] whitespace-pre-wrap">
-      ${scene}
-    </p>
-  </div>
-
-  ${
-    index !== scenes.length - 1
-      ? `<div class="story-divider"></div>`
-      : ''
-  }
-`).join('')}
-
-  <!-- PENUTUP CERITA -->
-  ${closing ? `
-    <div class="mt-10 p-6 rounded-3xl bg-white/10 border border-white/20">
-      <p class="text-xs font-black uppercase text-cyan-400 mb-2">Akhir Cerita</p>
-      <p class="italic text-slate-200 text-lg leading-relaxed whitespace-pre-wrap">
-        ${closing}
-      </p>
-    </div>
-  ` : ''}
-
-  <!-- PESAN MORAL -->
-  ${item.moral ? `
-    <div class="mt-10 p-6 rounded-3xl bg-gradient-to-br from-yellow-400/10 to-orange-500/10 border border-yellow-500/20">
-      <p class="text-xs font-black uppercase text-yellow-400 mb-2">Pesan Moral</p>
-      <p class="italic text-slate-100 text-base">
-        ${item.moral}
-      </p>
-    </div>
-  ` : ''}
-`;
-    } else {
-  contentBox.innerHTML = `
-    <div class="mb-6 p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-      <p class="text-xs font-black uppercase text-cyan-400 mb-1">Ringkasan Materi</p>
-      <p class="text-sm text-slate-200">Baca materi berikut dengan fokus pada poin penting.</p>
-    </div>
-
-    <div class="prose prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-wrap text-[15px] md:text-lg">
-      ${item.konten}
-    </div>
-  `;
-}
-    
-    // Media handling tetap sama untuk keduanya
-    const mediaBox = document.getElementById('read-media');
-    mediaBox.innerHTML = '';
-    if (item.media) {
-        mediaBox.classList.remove('hidden');
-        if (item.mediaType === 'video') {
-            mediaBox.innerHTML = `<video src="${item.media}" controls class="w-full aspect-video bg-black rounded-3xl"></video>`;
-        } else {
-            mediaBox.innerHTML = `<img 
-  src="${item.media}"
-  loading="lazy"
-  class="w-full h-auto rounded-2xl object-cover"
-/>`;
-        }
-    } else {
-        mediaBox.classList.add('hidden');
-    }
-    
-    document.getElementById('view-list').classList.add('hidden');
-    document.getElementById('view-read').classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    lucide.createIcons();
-};
-        // --- CLOSE MATERI ---
-        window.closeMateri = () => {
-            const v = document.querySelector('video, audio'); 
-            if (v) v.pause();
-
-            document.getElementById('view-read').classList.add('hidden');
-            document.getElementById('view-list').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.openMateri = (id, tipe) => {
+            const targetPage = tipe === 'storytelling' ? 'baca-story.html' : 'baca-standar.html';
+            window.location.href = `${targetPage}?id=${id}`;
         };
 
-        // --- FIREBASE SYNC ---
         window.addEventListener('DOMContentLoaded', () => {
             const q = collection(db, 'artifacts', appId, 'public', 'data', 'materi');
             onSnapshot(q, (snapshot) => {
                 allMateri = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
                             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('materi-grid').classList.remove('hidden');
-                
-                // Pastikan filter berjalan setelah data ditarik
                 window.filterMateri(currentFilter);
-            }, (error) => {
-                console.error("Firestore Error:", error);
-                document.getElementById('loading').innerHTML = `<p class="text-red-500">Gagal memuat data. Periksa koneksi internet.</p>`;
             });
         });
     </script>
 </body>
 </html>
-
-
-
 
 
