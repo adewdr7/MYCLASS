@@ -15,6 +15,36 @@
         input, textarea, select { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none !important; }
         input:focus, textarea:focus, select:focus { border-color: #fbbf24 !important; }
         .tester-badge { background: linear-gradient(45deg, #f59e0b, #ef4444); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+/* Toast animation */
+.toast-enter {
+    animation: toastUp 0.25s ease-out forwards;
+}
+
+.toast-exit {
+    animation: toastDown 0.2s ease-in forwards;
+}
+
+@keyframes toastUp {
+    from {
+        transform: translate(-50%, 20px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastDown {
+    from {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate(-50%, 20px);
+        opacity: 0;
+    }
+}
 </style>
 </head>
 <body class="p-5 md:p-10">
@@ -115,10 +145,12 @@
 
         <div class="w-full h-full perspective-1000">
             <div id="preview-card-inner" class="flashcard-inner w-full h-full relative rounded-3xl border border-white/10 glass">
-                <div class="flashcard-front flex flex-col items-center justify-center p-6 text-center">
-                    <span class="text-[10px] uppercase font-bold text-amber-500/50 absolute top-4 tracking-widest">Sisi Depan</span>
-                    <p id="preview-front-text" class="text-lg font-bold italic tracking-tight px-8">Ketik pertanyaan...</p>
-                </div>
+               <div class="flashcard-front grid place-items-center w-full h-full text-center px-6">
+    <p id="preview-front-text"
+       class="text-xl font-bold italic tracking-tight max-w-prose">
+        Ketik pertanyaan...
+    </p>
+</div>
             </div>
         </div>
 
@@ -343,15 +375,20 @@ function showAnswerToast(text) {
     const toastText = document.getElementById('answer-toast-text');
 
     toastText.innerText = text || "Belum ada jawaban";
-    toast.classList.remove('hidden');
 
-    // auto hide setelah 2.5 detik
+    toast.classList.remove('hidden', 'toast-exit');
+    toast.classList.add('toast-enter');
+
     clearTimeout(window.__answerToastTimer);
     window.__answerToastTimer = setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 2500);
-}
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-exit');
 
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 200);
+    }, 2000); // cepat & responsif
+}
 // Run
 init();
 </script>
